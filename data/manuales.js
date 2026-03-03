@@ -73,8 +73,7 @@ export const MAN_DATA = {
             min: 4000,
             min_cintalapa: 3000,
             max: 80000,
-            primer_ciclo_max: 12000,
-            nota: 'El monto mínimo general es $4,000.00 (excepción Cintalapa: $3,000.00). El monto máximo general es $80,000.00. Para el primer ciclo sin historial, el máximo es $12,000.00; con buen historial externo comprobable también hasta $12,000.00. A partir del 2.º ciclo el monto puede incrementarse según historial y ciclos. Montos de $65,000.01 a $80,000.00 requieren autorización del Subdirector Divisional.',
+            nota: 'El monto mínimo general es $4,000.00 (excepción Cintalapa: $3,000.00). El monto máximo general es $80,000.00.',
         },
         plazos: {
             texto: '16, 20 o 24 semanas según la región. Reestructuras hasta 8 meses (semanal, quincenal o mensual).',
@@ -82,6 +81,7 @@ export const MAN_DATA = {
         },
         tasas: {
             moratoria_texto: '10% de la ficha total por cada día de atraso. Para faltantes menores al 10% de la ficha: $100.00 por día.',
+            global_mensual: 'Sin bonificación: 3.913% mensual. Con bonificación: 3.413% mensual.',
             bonificacion: {
                 ciclos_1_5: '0.5%',
                 ciclos_6_9: '0.75%',
@@ -91,8 +91,8 @@ export const MAN_DATA = {
             },
         },
         grupo: {
-            min_integrantes: 8,
-            max_integrantes: null, // sin límite explícito general
+            min_integrantes: 5,
+            max_integrantes: 25,
             tipo_solicitante: 'Personas físicas mexicanas, sexo femenino, mayores de 18 años.',
             region_puebla: {
                 min_integrantes: 5,
@@ -115,6 +115,7 @@ export const MAN_DATA = {
         },
         garantias: 'Garantía líquida del 10% del monto solicitado + responsabilidad solidaria del grupo.',
         seguro_vida: {
+            monto: '$10.25 por semana por cliente (con IVA).',
             edad_aceptacion: '18 a 89 años cumplidos.',
             suma_asegurada: '$40,000.00 total por fallecimiento. $35,000.00 al beneficiario + $5,000.00 gastos administrativos CONSERVA.',
             vigencia: 'Misma que el contrato de crédito. No cancelable ni reembolsable.',
@@ -132,15 +133,18 @@ export const MAN_DATA = {
         fuente: 'MAN-TAC Manual de Crédito T Activa — Catálogo de Producto',
         temas: ['Montos', 'Plazos', 'Tasas e intereses', 'Integrantes del grupo', 'Requisitos', 'Garantías', 'Bonificación', 'Seguro'],
         montos: {
-            min: 1000,
+            min: 10000,
             max: 80000,
-            nota: 'Límites generales de $1,000.00 a $80,000.00. El monto depende del ciclo, historial y capacidad de pago.',
+            nota: 'Límites generales de $10,000.00 a $80,000.00. El monto depende del ciclo, historial y capacidad de pago.',
         },
         plazos: {
-            texto: 'Según el ciclo de crédito. Reestructuras hasta 8 meses (semanal, quincenal o mensual).',
+            texto: 'De 4 a 9 meses (16 a 36 semanas). Semanal, catorcenal o mensual. Reestructuras hasta 8 meses.',
         },
         tasas: {
+            global_mensual: '4.5%',
+            cat: '165.1%',
             moratoria_texto: '10% de la ficha total por día de atraso.',
+            bonificacion: { nota: '0.5% desde el 1er ciclo para grupos de 3+ integrantes con pago puntual.' }
         },
         grupo: {
             min_integrantes: 2,
@@ -153,7 +157,7 @@ export const MAN_DATA = {
             garantia_liquida: '10% del monto solicitado.',
         },
         garantias: 'Garantía líquida del 10% + responsabilidad solidaria del grupo.',
-        seguro_vida: { edad_aceptacion: '18 a 89 años.', nota: 'Incluido en la colocación del crédito.' },
+        seguro_vida: { edad_aceptacion: '20 a 89 años cumplidos.', nota: 'Cuota semanal individual de $13.00 con IVA. Suma asegurada: $35,000.', vigencia: 'Mientras el crédito esté vigente.' },
     },
 
     // ── CRÉDITO INDIVIDUAL ──────────────────────────────────────────────────
@@ -162,13 +166,14 @@ export const MAN_DATA = {
         fuente: 'MAN-IND Manual de Crédito Individual — Catálogo de Producto',
         temas: ['Montos', 'Plazos', 'Tasas e intereses', 'Requisitos', 'Garantías', 'Seguro de vida', 'Cobranza'],
         montos: {
-            min: 10000,
-            nota: 'Monto mínimo orientativo $10,000.00. El máximo depende de la capacidad de pago e historial.',
+            min: 50000,
+            max: 500000,
+            nota: 'Límites generales: Desde $ 50,000.00 hasta $500,000.00. Tu negocio con conserva / opción de financiamiento de fácil acceso para personas con actividades productivas, destinado para el mejoramiento y crecimiento de negocios en marcha.',
         },
-        plazos: { texto: 'Hasta 12 meses en reestructura. Pagos semanales, quincenales o mensuales.' },
-        tasas: { moratoria_texto: '10% de la ficha total por día de atraso.' },
+        plazos: { texto: 'Sistema: Huella Conserva Asistente Institucional | v1.0 | 2026 | Activo\n📍 MAN\n\nDe acuerdo al documento Manual de Crédito Individual (Tu Negocio con CONSERVA), estas son las reglas para los plazos del crédito:\n\nHasta 12 meses en reestructura. Pagos semanales, quincenales o mensuales.' },
+        tasas: { moratoria_texto: 'La cantidad resultante de multiplicar la tasa ordinaria x 2.', global_mensual: '7.29% para créditos de $50,000 a $100,000.' },
         grupo: {
-            tipo_solicitante: 'Persona física con actividad productiva lícita (fijo, semifijo o ambulante). Es un crédito INDIVIDUAL, no grupal.',
+            tipo_solicitante: 'Persona física con actividad productiva lícita (fijo, semifijo o ambulante). Crédito INDIVIDUAL, no grupal.',
         },
         requisitos: {
             documentos: [
@@ -181,9 +186,9 @@ export const MAN_DATA = {
             ],
             garantia_liquida: 'Aplica según análisis de riesgo.',
             edad: '18 años en adelante.',
-            antigüedad_domicilio: 'Mínimo 12 meses de residencia comprobable.',
+            antigüedad_domicilio: 'Mínimo 24 meses de residencia comprobable.',
         },
-        garantias: 'Garantía líquida + Aval o garantía prendaria según análisis de riesgo.',
+        garantias: 'Garantía líquida + Aval o garantía prendaria (toda garantía prendaria deberá cubrir relación 1 a 1.5).',
         seguro_vida: { edad_aceptacion: '18 a 89 años.', nota: 'Incluido en la colocación.' },
     },
 

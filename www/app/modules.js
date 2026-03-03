@@ -16,8 +16,6 @@ import {
     VIA_GRUPOS, VIA_POLITICAS, VIA_INTERNACIONAL,
 } from '../data/manuales.js';
 
-import { FAQS } from '../data/faqs.js';
-
 // ─── MOD-CON-001 ─────────────────────────────────────────────────────────────
 const CON_INFO = {
     mision: `Somos una empresa mexicana; impulsamos procesos formativos de desarrollo y bienestar para nuestros clientes, a través de servicios financieros y no financieros eficientes liderados por colaboradores con vocación de servicio, profesionalismo y alto compromiso social.`,
@@ -138,36 +136,6 @@ export function handleMAN(query, linea) {
     }
 
     const q = (query || '').toLowerCase();
-
-    // ── BÚSQUEDA EN FAQs ───────────────────────────────────────────────────────
-    if (FAQS && FAQS[linea.id]) {
-        const qClean = q.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\w\s]/gi, '');
-        const qWords = qClean.split(/\s+/).filter(w => w.length > 3);
-
-        let bestMatch = null;
-        let bestScore = 0;
-
-        for (const faq of FAQS[linea.id]) {
-            const faqQClean = faq.q.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\w\s]/gi, '');
-            let matches = 0;
-            for (const word of qWords) {
-                if (faqQClean.includes(word)) matches++;
-            }
-            const score = matches / Math.max(qWords.length, 1);
-            if (score > bestScore) {
-                bestScore = score;
-                bestMatch = faq;
-            }
-        }
-
-        // Si hay una coincidencia fuerte (más del 60% de las palabras clave encontradas)
-        if (bestScore >= 0.6 && bestMatch) {
-            return {
-                content: `He encontrado información específica en **${data.nombre}** que responde a tu consulta:\n\n💬 **${bestMatch.a}**`,
-                source: data.fuente
-            };
-        }
-    }
 
     // ── Detección de tema (por palabras clave o por número en la lista) ────────
     const numEntrada = parseInt(q.trim(), 10);
@@ -415,50 +383,6 @@ function detectDestino(query) {
 
 export function handleVIA(query, collaborator) {
     const q = (query || '').toLowerCase();
-
-    // ── BÚSQUEDA EN FAQs ───────────────────────────────────────────────────────
-    if (FAQS && FAQS['MAN_VIA']) {
-        const qClean = q.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\w\s]/gi, '');
-        const qWords = qClean.split(/\s+/).filter(w => w.length > 3);
-
-        let bestMatch = null;
-        let bestScore = 0;
-
-        for (const faq of FAQS['MAN_VIA']) {
-            const faqQClean = faq.q.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\w\s]/gi, '');
-            let matches = 0;
-            for (const word of qWords) {
-                if (faqQClean.includes(word)) matches++;
-            }
-            const score = matches / Math.max(qWords.length, 1);
-            if (score > bestScore) {
-                bestScore = score;
-                bestMatch = faq;
-            }
-        }
-
-        // Si hay coincidencia fuerte
-        if (bestScore >= 0.6 && bestMatch) {
-            let answerText = bestMatch.a;
-
-            // ── RAZONAMIENTO DINÁMICO PARA DEVOLUCIÓN DE VIÁTICOS ──
-            const moneyMatch = q.match(/\$(\d+(?:\.\d+)?)/) || q.match(/\b(\d+(?:\.\d+)?)\s*pesos\b/);
-            if (moneyMatch && answerText.includes('En este caso los $40.00 de excedente')) {
-                const amount = parseFloat(moneyMatch[1]);
-                let action = '';
-                if (amount > 0) {
-                    action = `> 🧐 **Análisis de tu consulta:** Mencionas la cantidad de **$${amount.toFixed(2)}**.\n> \n> - Si esos $${amount.toFixed(2)} son dinero que te **sobró** (excedente de caja), **DEBES DEVOLVERLOS** al Área de Administración, ya que no hay un monto mínimo exento para devolver dinero sobrante de la empresa.\n> - En cambio, si tú hubieras **gastado de más** de tu propio bolsillo (saldo a favor), al ser una cantidad ${amount > 50 ? `**mayor a $50.00**, la empresa **SÍ** te la reembolsaría.` : `**menor o igual al umbral de $50.00**, la empresa **NO** te gestionaría reembolso.`}`;
-                }
-                answerText = `**Sí debe devolverlos (si es dinero que sobró).** Hay dos reglas en la política que aplican y no deben confundirse:\n\n1. Si el importe comprobado es menor al depositado (te sobró dinero de viáticos), dicho excedente **debe devolverse obligatoriamente** antes de los 2 días hábiles junto con la comprobación, sin importar lo pequeña que sea la cantidad.\n\n2. El reembolso a favor del viaticante (cuando tú gastas más de lo depositado) solo aplica y se paga cuando el saldo a favor es estrictamente **mayor a $50.00**.\n\n${action}`;
-            }
-
-            return {
-                content: `De acuerdo a la Política de Viáticos, referente a tu duda:\n\n💬 ${answerText}`,
-                source: `MOD-VIA-006 MANUAL_VIATICOS`
-            };
-        }
-    }
-
     const puesto = collaborator?.puesto || '';
     const grupo = getGrupoVIA(puesto);
     const tipoNomina = getTipoNomina(puesto);
