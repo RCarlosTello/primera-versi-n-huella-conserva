@@ -37,9 +37,19 @@ jobs:
 
       - name: Compilar APK con Gradle
         working-directory: ./android
-        run: ./gradlew assembleDebug
+        run: |
+          chmod +x ./gradlew
+          ./gradlew assembleDebug --stacktrace
+
+      - name: Subir Logs de Gradle (en caso de error)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gradle-logs
+          path: android/app/build/reports/
 
       - name: Subir APK final
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: huella_conserva.apk
