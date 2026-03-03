@@ -1,0 +1,38 @@
+# Script de sincronización automática (herramienta local)
+auto-sync.ps1
+
+# Dependencias y build
+node_modules/
+dist/
+
+# Archivos grandes y de datos (superan límites de GitHub)
+CIERREDICIEMBRE2025.xlsx
+CIERREDICIEMBRE2025.csv
+CIERREDICIEMBRE2025.csv.xlsx
+*.csv
+*.xlsm
+*.xlsx
+*.xml
+1DE9C000
+
+# Archivos temporales de Office (~$...)
+~$*
+
+# Archivos temporales del sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Variables de entorno y secretos
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# Archivos de caché de editores
+.vscode/
+*.suo
+*.user

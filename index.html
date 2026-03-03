@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description"
+    content="Huella Conserva Asistente Institucional — Ecosistema digital oficial de información normativa de Grupo CONSERVA." />
+  <title>Huella Conserva — Asistente Institucional v1.0</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles/main.css" />
+  <!-- Chart.js para gráficas de estadísticas -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+</head>
+
+<body>
+  <div id="app-shell">
+
+    <!-- Sidebar / Branding -->
+    <aside id="sidebar">
+      <div id="brand-block">
+        <img id="logo" src="huella conserva.jpeg" alt="Huella Conserva logo" />
+        <div id="brand-text">
+          <span class="brand-title">Huella Conserva</span>
+          <span class="brand-sub">Asistente Institucional</span>
+        </div>
+      </div>
+      <div id="system-status">
+        <div class="status-row"><span class="status-label">Sistema</span><span class="status-val">v1.0</span></div>
+        <div class="status-row"><span class="status-label">Año</span><span class="status-val">2026</span></div>
+        <div class="status-row"><span class="status-label">Estado</span><span
+            class="status-val active-dot">Activo</span></div>
+      </div>
+      <nav id="module-nav" aria-label="Módulos disponibles">
+        <p class="nav-label">MÓDULOS</p>
+        <button class="mod-btn" id="nav-con" data-module="CON" disabled>
+          <span class="mod-code">MOD-CON-001</span>
+          <span class="mod-name">Conócenos</span>
+        </button>
+        <button class="mod-btn" id="nav-man" data-module="MAN" disabled>
+          <span class="mod-code">MOD-MAN-002</span>
+          <span class="mod-name">Manuales Institucionales</span>
+        </button>
+        <button class="mod-btn" id="nav-via" data-module="VIA" disabled>
+          <span class="mod-code">MOD-VIA-006</span>
+          <span class="mod-name">Política de Viáticos</span>
+        </button>
+        <button class="mod-btn hidden" id="nav-est" data-module="EST" disabled>
+          <span class="mod-code">MOD-EST-007</span>
+          <span class="mod-name">Estadísticas</span>
+        </button>
+      </nav>
+      <div id="session-info" class="hidden">
+        <div id="user-badge">
+          <div id="user-avatar" aria-hidden="true">👤</div>
+          <div id="user-details">
+            <span id="user-name-display">—</span>
+            <span id="user-role-display">—</span>
+          </div>
+        </div>
+        <div id="session-timer-wrap">
+          <span class="status-label">Sesión activa</span>
+          <span id="session-timer">60:00</span>
+        </div>
+        <button id="btn-logout" title="Cerrar sesión">⏻ Cerrar sesión</button>
+      </div>
+    </aside>
+
+    <!-- Main chat area -->
+    <main id="chat-area">
+      <header id="chat-header">
+        <div id="breadcrumb" aria-live="polite">
+          <span id="breadcrumb-text">Inicio</span>
+        </div>
+        <div id="header-meta">Sistema: Huella Conserva Asistente Institucional | v1.0 | 2026 | Activo</div>
+      </header>
+
+      <div id="messages-container" role="log" aria-live="polite" aria-label="Historial de conversación">
+        <!-- Messages rendered by JS -->
+      </div>
+
+      <div id="typing-indicator" class="hidden" aria-live="polite">
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+      </div>
+
+      <footer id="input-area">
+        <div id="input-wrapper">
+          <textarea id="user-input" placeholder="Escribe tu consulta..." rows="1" maxlength="800"
+            aria-label="Escribe tu consulta" autocomplete="off" spellcheck="true"></textarea>
+          <button id="send-btn" aria-label="Enviar mensaje" title="Enviar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round" aria-hidden="true">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+          </button>
+        </div>
+        <p id="input-hint">Presiona <kbd>Enter</kbd> para enviar · <kbd>Shift+Enter</kbd> para nueva línea</p>
+      </footer>
+    </main>
+
+  </div>
+
+  <script type="module" src="app/main.js"></script>
+</body>
+
+</html>
