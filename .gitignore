@@ -13,6 +13,7 @@ CIERREDICIEMBRE2025.csv.xlsx
 *.xlsm
 *.xlsx
 *.xml
+!android/**/*.xml
 1DE9C000
 
 # Archivos temporales de Office (~$...)
