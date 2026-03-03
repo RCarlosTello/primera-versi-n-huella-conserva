@@ -19,6 +19,8 @@
   },
   "homepage": "https://github.com/RCarlosTello/huella-conserva#readme",
   "dependencies": {
+    "@capacitor/cli": "^8.1.0",
+    "@capacitor/core": "^8.1.0",
     "@capacitor/android": "^8.1.0"
   }
 }
