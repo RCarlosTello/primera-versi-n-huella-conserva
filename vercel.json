@@ -12,11 +12,11 @@
     ],
     "routes": [
         {
+            "handle": "filesystem"
+        },
+        {
             "src": "/(.*)",
             "dest": "/index.html"
         }
-    ],
-    "env": {
-        "VITE_BASE_URL": "/"
-    }
+    ]
 }
