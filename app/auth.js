@@ -3,8 +3,6 @@
  * Autenticación, sesión y validación de acceso.
  */
 
-import { findByEmail, isBirthday } from '../data/collaborators.js';
-
 // ── Email validation ──────────────────────────────────────────
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -12,12 +10,18 @@ export function validateEmailFormat(email) {
     return EMAIL_RE.test((email || '').trim());
 }
 
-// ── Collaborator lookup ───────────────────────────────────────
-export async function lookupCollaborator(email) {
+// ── Collaborator lookup (Lazy Loaded) ─────────────────────────
+export async function lookupCollaborator(email, pass) {
+    if (pass !== 'Conserva2026') return null; // Hardcoded institutional password check
+    
+    const { findByEmail } = await import('../data/collaborators.js');
     return await findByEmail(email);
 }
 
-export { isBirthday };
+export async function checkIsBirthday(dateString) {
+    const { isBirthday } = await import('../data/collaborators.js');
+    return isBirthday(dateString);
+}
 
 // ── Session Manager ───────────────────────────────────────────
 const SESSION_TIMEOUT_MS = 60 * 60 * 1000; // 1 hora

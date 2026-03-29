@@ -9,11 +9,17 @@ let _cache = null;
 
 async function _loadData() {
   if (_cache) return _cache;
-  const resp = await fetch('./data/_collab_raw.json');
-  const arr = await resp.json();
-  // Normalizar correos a minúsculas
-  _cache = arr.map(c => ({ ...c, correo: (c.correo || '').toLowerCase().trim() }));
-  return _cache;
+  try {
+    const resp = await fetch('/data/_collab_raw.json');
+    if (!resp.ok) throw new Error(`HTTP ${resp.status} al cargar colaboradores`);
+    const arr = await resp.json();
+    // Normalizar correos a minúsculas
+    _cache = arr.map(c => ({ ...c, correo: (c.correo || '').toLowerCase().trim() }));
+    return _cache;
+  } catch (err) {
+    console.error('[Auth] Error cargando base de colaboradores:', err);
+    return []; // devuelve lista vacía en vez de crashear
+  }
 }
 
 /**

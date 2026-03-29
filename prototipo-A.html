@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prototipo A — Opción 1 + 3</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg: #0d1a0f;
+    --surface: #111f13;
+    --surface2: #162419;
+    --border: #1e3a22;
+    --accent: #2d6a35;
+    --accent-bright: #3d9148;
+    --accent-glow: #4caf5044;
+    --text: #c8dfc9;
+    --text-dim: #6a9470;
+    --text-muted: #3d5e40;
+    --chip-bg: #162e1a;
+    --chip-hover: #1f3f24;
+    --tag: #0f2a12;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    font-family: 'IBM Plex Sans', sans-serif;
+    color: var(--text);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* TOP BAR */
+  .topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .topbar-left {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.05em;
+  }
+  .topbar-left span { color: var(--accent-bright); }
+  .topbar-right {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+
+  /* BADGE */
+  .badge-label {
+    background: #1a3d1f;
+    border: 1px solid #2a5c30;
+    color: #6fbb78;
+    font-size: 9px;
+    font-family: 'IBM Plex Mono', monospace;
+    padding: 3px 8px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  /* CHAT AREA */
+  .chat-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 20px;
+    scroll-behavior: smooth;
+    position: relative;
+  }
+  .chat-area::-webkit-scrollbar { width: 4px; }
+  .chat-area::-webkit-scrollbar-track { background: transparent; }
+  .chat-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* MESSAGES */
+  .message-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+    align-items: flex-start;
+  }
+  .avatar {
+    width: 32px;
+    height: 32px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 14px;
+  }
+  .user-row { flex-direction: row-reverse; }
+  .user-row .bubble {
+    background: var(--accent);
+    border-color: var(--accent-bright);
+    color: #e8f5e9;
+    margin-left: auto;
+  }
+  .bubble {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 13.5px;
+    line-height: 1.6;
+    max-width: 620px;
+    color: var(--text);
+  }
+
+  /* SOURCE TAG */
+  .source-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--tag);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 5px 10px;
+    font-size: 11px;
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--text-dim);
+    margin-top: 10px;
+  }
+
+  /* ======= CHIPS CONTAINER (Opción 3) ======= */
+  .chips-section {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding-left: 44px;
+  }
+  .chips-label {
+    font-size: 11px;
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--text-muted);
+    white-space: nowrap;
+    padding-top: 8px;
+    flex-shrink: 0;
+  }
+  .chips-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    flex: 1;
+  }
+  .chip {
+    background: var(--chip-bg);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 12px;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.18s ease;
+    white-space: nowrap;
+    font-family: 'IBM Plex Sans', sans-serif;
+  }
+  .chip:hover {
+    background: var(--chip-hover);
+    border-color: var(--accent-bright);
+    color: var(--accent-bright);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px var(--accent-glow);
+  }
+  .chip.more {
+    background: transparent;
+    border-style: dashed;
+    color: var(--text-muted);
+  }
+  .chip.more:hover {
+    border-style: solid;
+    color: var(--text-dim);
+    background: var(--chip-bg);
+  }
+
+  /* ======= COLLAPSIBLE MENU (Opción 1) ======= */
+  .menu-toggle-row {
+    padding-left: 44px;
+    margin-bottom: 20px;
+  }
+  .menu-toggle-btn {
+    background: transparent;
+    border: 1px dashed var(--text-muted);
+    border-radius: 6px;
+    padding: 7px 14px;
+    font-size: 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+  }
+  .menu-toggle-btn:hover {
+    border-color: var(--accent-bright);
+    color: var(--accent-bright);
+  }
+  .menu-toggle-btn .arrow {
+    display: inline-block;
+    transition: transform 0.25s ease;
+    font-size: 10px;
+  }
+  .menu-toggle-btn.open .arrow { transform: rotate(180deg); }
+
+  .collapsible-menu {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+    opacity: 0;
+    padding-left: 44px;
+  }
+  .collapsible-menu.open {
+    max-height: 400px;
+    opacity: 1;
+  }
+  .menu-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 7px;
+    padding-bottom: 12px;
+    max-width: 560px;
+  }
+  .menu-item {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 12.5px;
+    color: var(--text-dim);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.18s;
+  }
+  .menu-item:hover {
+    background: var(--chip-hover);
+    border-color: var(--accent-bright);
+    color: var(--text);
+    transform: translateX(3px);
+  }
+  .menu-item .num {
+    width: 20px;
+    height: 20px;
+    background: var(--tag);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--accent-bright);
+    flex-shrink: 0;
+  }
+
+  /* ANSWER HIGHLIGHT */
+  .answer-highlight {
+    background: linear-gradient(135deg, #0f2a14, #122515);
+    border: 1px solid #2a5c30;
+    border-left: 3px solid var(--accent-bright);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-top: 10px;
+  }
+  .answer-title {
+    font-size: 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--accent-bright);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 8px;
+  }
+  .answer-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 0;
+    border-bottom: 1px solid #1a3520;
+    font-size: 13px;
+  }
+  .answer-row:last-child { border-bottom: none; }
+  .answer-row .val { color: #a8d5ab; font-weight: 500; }
+
+  /* INPUT BAR */
+  .input-bar {
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  .input-field {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .input-field::placeholder { color: var(--text-muted); }
+  .input-field:focus { border-color: var(--accent); }
+  .send-btn {
+    width: 38px; height: 38px;
+    background: var(--accent);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  .send-btn:hover { background: var(--accent-bright); }
+  .hint-bar {
+    text-align: center;
+    font-size: 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--text-muted);
+    padding: 6px;
+    background: var(--bg);
+    border-top: 1px solid #111;
+  }
+  .hint-bar kbd {
+    background: #1a2e1c;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 1px 5px;
+    font-size: 10px;
+  }
+
+  /* PROTOTYPE LABEL */
+  .proto-banner {
+    background: linear-gradient(90deg, #0f2a12, #162e1a);
+    border-bottom: 2px solid var(--accent-bright);
+    padding: 6px 20px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--accent-bright);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    display: flex;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .solution-tags { display: flex; gap: 8px; }
+  .stag {
+    background: #0d2410;
+    border: 1px solid #2a5030;
+    border-radius: 3px;
+    padding: 1px 7px;
+    font-size: 9px;
+    color: #5db868;
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left"><span>MOD-MAN-002</span> › Crédito Individual (Tu Negocio con CONSERVA)</div>
+  <div class="topbar-right">Sistema: Huella Conserva Asistente institucional | v1.0 | 2026 | Activo</div>
+</div>
+
+<div class="chat-area" id="chatArea">
+
+  <!-- USER MESSAGE -->
+
+
+  <!-- BOT ANSWER — stays visible -->
+  <div class="message-row" id="answerMsg">
+    <div class="avatar">🌿</div>
+    <div class="bubble">
+      Según el <strong>Manual de Crédito Individual (Tu Negocio con CONSERVA)</strong>, los montos disponibles son:
+      <div class="answer-highlight">
+        <div class="answer-title">📋 Tabla de montos — Crédito Individual</div>
+        <div class="answer-row"><span>Monto mínimo</span><span class="val">$3,000 MXN</span></div>
+        <div class="answer-row"><span>Monto máximo (primer ciclo)</span><span class="val">$15,000 MXN</span></div>
+        <div class="answer-row"><span>Monto máximo (ciclos posteriores)</span><span class="val">$50,000 MXN</span></div>
+        <div class="answer-row"><span>Incremento por ciclo</span><span class="val">Hasta 30%</span></div>
+      </div>
+      <div class="source-tag">📄 Fuente: MAN-IND Manual de Crédito Individual — Catálogo de Producto</div>
+    </div>
+  </div>
+
+  <!-- ===== OPCIÓN 3: CHIPS — compactos, no desplazan ===== -->
+  <div class="chips-section">
+    <span class="chips-label">¿Otra consulta?</span>
+    <div class="chips-wrapper">
+      <div class="chip" onclick="selectChip(this)">📊 Montos</div>
+      <div class="chip" onclick="selectChip(this)">📋 Requisitos</div>
+      <div class="chip" onclick="selectChip(this)">📅 Plazos</div>
+      <div class="chip" onclick="selectChip(this)">💰 Tasas de interés</div>
+      <div class="chip" onclick="selectChip(this)">🔄 Ciclos</div>
+      <div class="chip more" onclick="toggleMenu()">+ Ver más opciones ▾</div>
+    </div>
+  </div>
+
+  <!-- ===== OPCIÓN 1: MENÚ COLAPSADO ===== -->
+  <div class="collapsible-menu" id="collapsibleMenu">
+    <div class="menu-grid">
+      <div class="menu-item"><span class="num">1</span> Mujeres de Palabra / Crédito Solidario</div>
+      <div class="menu-item"><span class="num">2</span> Crédito Individual (Tu Negocio con CONSERVA)</div>
+      <div class="menu-item"><span class="num">3</span> Conserva T Activa</div>
+      <div class="menu-item"><span class="num">4</span> Tu Hogar con CONSERVA</div>
+      <div class="menu-item"><span class="num">5</span> Crédito Paralelo</div>
+      <div class="menu-item"><span class="num">↩</span> Regresar al Menú Principal</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="input-bar">
+  <input class="input-field" type="text" placeholder="Escribe tu consulta..." id="inputField">
+  <button class="send-btn" onclick="sendMsg()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e8f5e9" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+  </button>
+</div>
+<div class="hint-bar">Presiona <kbd>Enter</kbd> para enviar · <kbd>Shift+Enter</kbd> para nueva línea</div>
+
+<script>
+  let menuOpen = false;
+
+  function toggleMenu() {
+    menuOpen = !menuOpen;
+    const menu = document.getElementById('collapsibleMenu');
+    const btn = document.querySelector('.chip.more');
+    if (menuOpen) {
+      menu.classList.add('open');
+      btn.textContent = '− Ocultar opciones ▴';
+    } else {
+      menu.classList.remove('open');
+      btn.textContent = '+ Ver más opciones ▾';
+    }
+  }
+
+  function selectChip(el) {
+    document.querySelectorAll('.chip').forEach(c => c.style.borderColor = '');
+    el.style.background = '#1f3f24';
+    el.style.borderColor = '#4caf50';
+    el.style.color = '#4caf50';
+    document.getElementById('inputField').value = el.textContent.replace(/^[^\w]+/, '').trim();
+    document.getElementById('inputField').focus();
+  }
+
+  function sendMsg() {
+    const val = document.getElementById('inputField').value.trim();
+    if (!val) return;
+    document.getElementById('inputField').value = '';
+    // Reset chips
+    document.querySelectorAll('.chip').forEach(c => {
+      c.style.background = '';
+      c.style.borderColor = '';
+      c.style.color = '';
+    });
+  }
+
+  document.getElementById('inputField').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
+  });
+</script>
+</body>
+</html>

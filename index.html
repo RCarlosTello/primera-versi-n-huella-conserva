@@ -6,71 +6,435 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description"
     content="Huella Conserva Asistente Institucional — Ecosistema digital oficial de información normativa de Grupo CONSERVA." />
-  <title>Huella Conserva — Asistente Institucional v1.0</title>
+  <title>Huella Conserva — Asistente Institucional v1.2</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles/main.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Syne:wght@400;600;700;800&family=Cinzel:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles/main.css?v=104" />
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <link rel="manifest" href="manifest.json" />
+  <script>
+    // Aplicar tema guardado antes del render para evitar parpadeo
+    (function() {
+      var t = localStorage.getItem('hc-theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+
+    // Registrar Service Worker para PWA Offline
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('PWA Service Worker Registrado:', reg.scope))
+          .catch(err => console.warn('PWA Service Worker Falló:', err));
+      });
+    }
+  </script>
   <!-- Chart.js para gráficas de estadísticas -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --conserva-blue: #0b46b7;
+      --conserva-green: #68c32b; 
+      --conserva-green-strong: #4cae1d;
+      --bg-soft: #f1f8f3;
+      --card-shadow: 0 40px 100px rgba(0, 0, 0, 0.05);
+    }
+    #login-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: none; 
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      opacity: 0; 
+      filter: blur(15px);
+      background: #f1f8f3;
+    }
+
+    .bg-shape {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.25;
+      pointer-events: none;
+    }
+
+    .bg-shape.one {
+      width: 400px;
+      height: 400px;
+      background: #a7f3d0;
+      top: -100px;
+      left: -100px;
+    }
+
+    .bg-shape.two {
+      width: 350px;
+      height: 350px;
+      background: #d1fae5;
+      bottom: -100px;
+      right: -100px;
+    }
+
+    .panel {
+      box-shadow: var(--card-shadow);
+      background: rgba(255, 255, 255, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      backdrop-filter: blur(14px);
+    }
+
+    /* ── Logo ────────────────────────────────────────────── */
+    .logo-wrap {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    .logo-img {
+      width: 140px;
+      height: auto;
+      object-fit: contain;
+      mix-blend-mode: multiply;
+      filter: drop-shadow(0 2px 8px rgba(0,0,0,0.05));
+    }
+
+    /* ── Inputs ──────────────────────────────────────────── */
+    .input-wrap {
+      position: relative;
+    }
+
+    .input-icon {
+      position: absolute;
+      top: 50%;
+      left: 1.25rem;
+      transform: translateY(-50%);
+      color: #94a3b8;
+      pointer-events: none;
+    }
+
+    .login-input {
+      width: 100%;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 0.85rem 1rem 0.85rem 3.5rem;
+      font-size: 1rem;
+      transition: all .2s ease;
+      background: #fff;
+      color: #1e293b;
+    }
+
+    .login-input:focus {
+      outline: none;
+      border-color: var(--conserva-green);
+      box-shadow: 0 0 0 4px rgba(104, 195, 43, 0.1);
+    }
+
+    /* ── Botón ───────────────────────────────────────────── */
+    .login-btn {
+      width: 100%;
+      border: 0;
+      border-radius: 12px;
+      padding: 1rem;
+      font-size: 1rem;
+      font-weight: 700;
+      color: white;
+      cursor: pointer;
+      background: #68c32b;
+      transition: all .2s ease;
+      margin-top: 1rem;
+    }
+
+    .login-btn:hover {
+      background: #5db026;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 20px rgba(104, 195, 43, 0.3);
+    }
+
+    .login-btn:disabled {
+      opacity: .7;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* ── Estado ──────────────────────────────────────────── */
+    .login-error-msg {
+      display: none;
+      border-radius: .9rem;
+      padding: .85rem 1rem;
+      font-size: .95rem;
+      line-height: 1.4;
+      background: #fef2f2;
+      color: #b91c1c;
+      border: 1px solid #fecaca;
+    }
+
+    .login-error-msg.show { display: block; }
+    .login-error-msg.success {
+      background: #f0fdf4;
+      color: #166534;
+      border: 1px solid #bbf7d0;
+    }
+
+    .small-label {
+      font-size: .85rem;
+      font-weight: 700;
+      color: #334155;
+      margin-bottom: .45rem;
+      display: block;
+    }
+
+    @media (max-width: 640px) {
+      .mobile-full {
+        min-height: 100vh;
+        border-radius: 0;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .mobile-full {
+        min-height: 100vh;
+        border-radius: 0;
+      }
+    }
+  </style>
 </head>
 
 <body>
-  <div id="app-shell">
+  <div id="native-splash" class="native-splash">
+    <!-- Carga optimizada y asíncrona de la imagen -->
+    <img src="huella_conserva.jpeg" alt="Huella Conserva Splash" decoding="async" class="fade-in-img" />
+  </div>
+  <script>
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        const splash = document.getElementById('native-splash');
+        if (splash) {
+          splash.style.opacity = '0';
+          splash.style.filter = 'blur(20px)'; // Difuminación
+          setTimeout(() => {
+            splash.remove();
+            
+            // Logic for offline/online session recovery
+            if (!sessionStorage.getItem('hc-session')) {
+                if (!navigator.onLine) {
+                    const offlineSession = localStorage.getItem('hc-session-offline');
+                    if (offlineSession) {
+                        sessionStorage.setItem('hc-session', offlineSession);
+                    }
+                } else {
+                    localStorage.removeItem('hc-session-offline');
+                }
+            }
+
+            // Mostrar login si no hay sesión
+            const loginScreen = document.getElementById('login-screen');
+            if (loginScreen && !sessionStorage.getItem('hc-session')) {
+                loginScreen.classList.remove('hidden');
+                loginScreen.style.display = 'flex';
+                // Animación de entrada: fade + blur-in
+                loginScreen.style.opacity = '0';
+                loginScreen.style.filter = 'blur(15px)';
+                loginScreen.style.transition = 'opacity 1.2s ease, filter 1.2s ease';
+                setTimeout(() => {
+                    loginScreen.style.opacity = '1';
+                    loginScreen.style.filter = 'blur(0px)';
+                }, 50);
+            } else {
+                document.getElementById('app-shell').style.display = 'flex';
+            }
+          }, 800); // Aumentado a 800ms para que la animación se aprecie
+        }
+      }, 3000); // 3 segundos de splash
+    });
+  </script>
+
+  <!-- Pantalla de Login Modernizada (Producción) -->
+  <div id="login-screen">
+    <div class="bg-shape one"></div>
+    <div class="bg-shape two"></div>
+
+    <main class="w-full h-full flex items-center justify-center p-4 sm:p-6">
+      <section class="panel mobile-full w-full max-w-lg rounded-[2.5rem] border border-white/60 bg-white/95 overflow-hidden">
+        <div>
+          <div class="flex flex-col justify-center p-8 sm:p-12">
+
+            <!-- ══ LOGO ══ -->
+            <div class="logo-wrap">
+              <img
+                src="huellaloginimagen2.png"
+                alt="Huella Conserva"
+                class="logo-img"
+                onerror="this.style.display='none'"
+              />
+            </div>
+
+            <!-- ══ ENCABEZADO ══ -->
+            <div class="mb-8 text-center">
+              <h2 class="text-2xl sm:text-3xl font-bold text-slate-800">Bienvenido</h2>
+              <p class="mt-2 text-sm sm:text-base text-slate-500">
+                Inicia sesión con tus credenciales institucionales.
+              </p>
+            </div>
+
+            <div id="login-error" class="login-error-msg" role="alert" aria-live="polite"></div>
+
+            <form id="login-form" class="mt-6 space-y-6">
+              <div>
+                <label for="login-email" class="small-label">Usuario</label>
+                <div class="input-wrap">
+                  <span class="input-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                  </span>
+                  <input id="login-email" name="username" type="text" class="login-input" placeholder="Ingresa tu usuario" autocomplete="username" required />
+                </div>
+              </div>
+
+              <div>
+                <label for="login-pass" class="small-label">Contraseña</label>
+                <div class="input-wrap">
+                  <span class="input-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="3" y="11" width="18" height="10" rx="2"></rect>
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                  </span>
+                  <input id="login-pass" name="password" type="password" class="login-input pr-12" placeholder="Ingresa tu contraseña" autocomplete="current-password" required />
+                  <button type="button" id="togglePassword" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600" aria-label="Mostrar contraseña">
+                    <svg id="eyeOpen" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <button id="login-submit" type="submit" class="login-btn">
+                Ingresar
+              </button>
+            </form>
+
+            <div class="mt-8 text-center text-xs sm:text-sm text-slate-400">
+              © 2026 Huella Conserva. Créditos con sentido humano.
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="app-shell" style="display: none;">
 
     <!-- Sidebar / Branding -->
     <aside id="sidebar">
       <div id="brand-block">
-        <img id="logo" src="huella_conserva.jpeg" alt="Huella Conserva logo" />
+        <img id="sidebar-logo" src="logohuella.jpeg" alt="Huella" />
         <div id="brand-text">
-          <span class="brand-title">Huella Conserva</span>
+          <span class="brand-title">Huella CONSERVA</span>
           <span class="brand-sub">Asistente Institucional</span>
         </div>
       </div>
+      
       <div id="system-status">
-        <div class="status-row"><span class="status-label">Sistema</span><span class="status-val">v1.0</span></div>
+        <div class="status-row"><span class="status-label">Sistema</span><span class="status-val">v1.2</span></div>
         <div class="status-row"><span class="status-label">Año</span><span class="status-val">2026</span></div>
-        <div class="status-row"><span class="status-label">Estado</span><span
-            class="status-val active-dot">Activo</span></div>
+        <div class="status-row"><span class="status-label">Estado</span><span class="status-val active-dot">Activo</span></div>
+      </div>
+
+      <div class="theme-switcher" role="group" aria-label="Selector de tema">
+        <span class="theme-switcher-label">Tema</span>
+        <div class="theme-switcher-btns">
+          <button class="theme-btn" id="theme-dark" data-theme-val="dark" title="Tema Oscuro" aria-pressed="false">
+            <span class="theme-btn-icon">🌙</span>
+            <span class="theme-btn-text">Oscuro</span>
+          </button>
+          <button class="theme-btn" id="theme-light" data-theme-val="light" title="Tema Claro" aria-pressed="false">
+            <span class="theme-btn-icon">☀️</span>
+            <span class="theme-btn-text">Claro</span>
+          </button>
+          <button class="theme-btn" id="theme-institutional" data-theme-val="institutional" title="Tema Institucional" aria-pressed="false">
+            <span class="theme-btn-icon">
+              <img src="huella_conserva.jpeg" style="width:18px;height:18px;border-radius:50%;object-fit:cover;display:block;">
+            </span>
+            <span class="theme-btn-text">Institucional</span>
+          </button>
+        </div>
       </div>
       <nav id="module-nav" aria-label="Módulos disponibles">
         <p class="nav-label">MÓDULOS</p>
         <button class="mod-btn" id="nav-con" data-module="CON" disabled>
-          <span class="mod-code">MOD-CON-001</span>
+          <span class="mod-icon">🏢</span>
           <span class="mod-name">Conócenos</span>
+          <span class="mod-code">MOD-CON-001</span>
         </button>
         <button class="mod-btn" id="nav-man" data-module="MAN" disabled>
-          <span class="mod-code">MOD-MAN-002</span>
+          <span class="mod-icon">📚</span>
           <span class="mod-name">Manuales Institucionales</span>
+          <span class="mod-code">MOD-MAN-002</span>
         </button>
         <button class="mod-btn" id="nav-via" data-module="VIA" disabled>
-          <span class="mod-code">MOD-VIA-006</span>
+          <span class="mod-icon">✈️</span>
           <span class="mod-name">Política de Viáticos</span>
+          <span class="mod-code">MOD-VIA-006</span>
+        </button>
+        <button class="mod-btn" id="nav-caj" data-module="CAJA" disabled>
+          <span class="mod-icon">💰</span>
+          <span class="mod-name">Manual de Caja Chica</span>
+          <span class="mod-code">MAN-CAJ</span>
+        </button>
+        <button class="mod-btn" id="nav-aud" data-module="AUD" disabled>
+          <span class="mod-icon">🔍</span>
+          <span class="mod-name">Auditoría Interna</span>
+          <span class="mod-code">MOD-AUD-005</span>
+        </button>
+        <button class="mod-btn" id="nav-san" data-module="SAN" disabled>
+          <span class="mod-icon">⚖️</span>
+          <span class="mod-name">Matriz de Sanciones</span>
+          <span class="mod-code">MOD-SAN-007</span>
         </button>
       </nav>
-      <div id="session-info" class="hidden">
-        <div id="user-badge">
-          <div id="user-avatar" aria-hidden="true">👤</div>
-          <div id="user-details">
-            <span id="user-name-display">—</span>
-            <span id="user-role-display">—</span>
-          </div>
-        </div>
-        <div id="session-timer-wrap">
-          <span class="status-label">Sesión activa</span>
-          <span id="session-timer">60:00</span>
-        </div>
-        <button id="btn-logout" title="Cerrar sesión">⏻ Cerrar sesión</button>
+      <div id="session-info-sidebar" class="hidden">
+        <button id="btn-logout" title="Cerrar sesión" style="margin: 10px; width: calc(100% - 20px);">⏻ Cerrar sesión</button>
       </div>
     </aside>
 
     <!-- Main chat area -->
     <main id="chat-area">
-      <header id="chat-header">
-        <div id="breadcrumb" aria-live="polite">
-          <span id="breadcrumb-text">Inicio</span>
+      <header id="chat-header" class="dual-header">
+        <!-- Row 1: Brand & User Profile -->
+        <div class="header-top-row">
+          <div class="header-left-mini">
+            <button id="sidebar-toggle" aria-label="Alternar menú">
+               <div class="menu-bars"><span></span><span></span><span></span></div>
+            </button>
+            <div class="header-brand-mini">
+              <img id="logo" src="logohuella.jpeg" alt="Huella" />
+              <span id="breadcrumb-text">Huella Conserva</span>
+            </div>
+          </div>
+
+          <div id="session-info-header" class="hidden">
+            <button id="header-logout-btn" class="logout-btn-header" title="Cerrar sesión" aria-label="Cerrar sesión">⏻ Cerrar Sesión</button>
+            <div id="user-details-header">
+              <span id="user-name-display-header">—</span>
+              <span id="user-role-display-header">—</span>
+            </div>
+            <div id="user-avatar-header">👤</div>
+          </div>
         </div>
-        <div id="header-meta">Sistema: Huella Conserva Asistente Institucional | v1.0 | 2026 | Activo</div>
+
+        <div class="header-divider"></div>
+
+        <!-- Row 2: Module Ribbon -->
+        <div class="header-bottom-row">
+          <div id="module-ribbon-top" class="ms ms--header">
+            <div class="ms-row" id="ribbon-row-top"></div>
+          </div>
+        </div>
       </header>
 
       <div id="messages-container" role="log" aria-live="polite" aria-label="Historial de conversación">
@@ -84,6 +448,16 @@
       </div>
 
       <footer id="input-area">
+        <!-- Contextual Ribbon (Orange box moved here) -->
+        <div id="contextual-ribbon" class="ms ms--bottom">
+          <div class="ms-row-container">
+            <div class="ms-row" id="ribbon-row-bottom">
+              <!-- Rellenado con temas dinámicamente -->
+            </div>
+            <button id="ribbon-scroll-right" class="ribbon-arrow" aria-label="Ver más">❯</button>
+          </div>
+        </div>
+
         <div id="input-wrapper">
           <textarea id="user-input" placeholder="Escribe tu consulta..." rows="1" maxlength="800"
             aria-label="Escribe tu consulta" autocomplete="off" spellcheck="true"></textarea>
@@ -102,6 +476,34 @@
   </div>
 
   <script type="module" src="app/main.js"></script>
+
+  <script>
+    // ── Selector de Tema ───────────────────────────────────────
+    (function() {
+      var THEMES = ['dark', 'light', 'institutional'];
+
+      function applyTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('hc-theme', theme);
+        document.querySelectorAll('.theme-btn').forEach(function(btn) {
+          var isActive = btn.getAttribute('data-theme-val') === theme;
+          btn.classList.toggle('active', isActive);
+          btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        });
+      }
+
+      // Set initial active state
+      var saved = localStorage.getItem('hc-theme') || 'institutional';
+      applyTheme(saved);
+
+      // Attach click handlers
+      document.querySelectorAll('.theme-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          applyTheme(btn.getAttribute('data-theme-val'));
+        });
+      });
+    })();
+  </script>
 </body>
 
 </html>

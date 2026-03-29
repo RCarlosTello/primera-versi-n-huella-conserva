@@ -1,26 +1,15 @@
 {
-  "name": "prueba-huella-conserva",
+  "name": "huella-conserva-vite",
   "version": "1.0.0",
-  "description": "**Asistente conversacional institucional** para el ecosistema de productos y servicios de Conserva.",
-  "main": "index.js",
+  "description": "Prueba Huella Conserva con Vite",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/RCarlosTello/huella-conserva.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "bugs": {
-    "url": "https://github.com/RCarlosTello/huella-conserva/issues"
-  },
-  "homepage": "https://github.com/RCarlosTello/huella-conserva#readme",
-  "dependencies": {
-    "@capacitor/cli": "^8.1.0",
-    "@capacitor/core": "^8.1.0",
-    "@capacitor/android": "^8.1.0"
+  "devDependencies": {
+    "vite": "^6.0.0",
+    "vite-plugin-pwa": "^0.21.0",
+    "terser": "^5.30.0"
   }
 }

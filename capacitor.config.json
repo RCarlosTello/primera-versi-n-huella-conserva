@@ -1,5 +1,10 @@
 {
   "appId": "com.conserva.huella",
   "appName": "HuellaConserva",
-  "webDir": "www"
+  "webDir": "www",
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 0
+    }
+  }
 }

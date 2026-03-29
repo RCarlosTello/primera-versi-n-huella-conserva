@@ -25,15 +25,26 @@ export const VIA_HOSPEDAJE = {
 
 /** Mapa de texto → clave de destino. */
 export const VIA_DESTINOS_MAP = {
-    chiapas: 'chiapas',
-    tabasco: 'tabasco',
-    villahermosa: 'tabasco',
-    merida: 'merida', merida: 'merida',
-    yucatan: 'merida', 'yucatán': 'merida',
-    puebla: 'puebla',
-    cdmx: 'cdmx', df: 'cdmx',
-    'ciudad de mexico': 'cdmx', 'ciudad de méxico': 'cdmx',
+    // Chiapas
+    chiapas: 'chiapas', tuxtla: 'chiapas', 'san cristobal': 'chiapas', 'san cristóbal': 'chiapas',
+    tapachula: 'chiapas', tonala: 'chiapas', 'tonalá': 'chiapas', oriente: 'chiapas',
+    palenque: 'chiapas', comitan: 'chiapas', 'comitán': 'chiapas',
+    // Tabasco
+    tabasco: 'tabasco', villahermosa: 'tabasco', cardenas: 'tabasco', 'cárdenas': 'tabasco',
+    comalcalco: 'tabasco', macuspana: 'tabasco', tenosique: 'tabasco',
+    // Merida
+    merida: 'merida', mérida: 'merida', yucatan: 'merida', 'yucatán': 'merida',
+    valladolid: 'merida', tizimin: 'merida', 'tizimín': 'merida', progreso: 'merida',
+    // Puebla
+    puebla: 'puebla', cholula: 'puebla', tehuacan: 'puebla', 'tehuacán': 'puebla',
+    atlixco: 'puebla', texmelucan: 'puebla', amozoc: 'puebla',
+    // CDMX
+    cdmx: 'cdmx', df: 'cdmx', 'ciudad de mexico': 'cdmx', 'ciudad de méxico': 'cdmx',
+    iztapalapa: 'cdmx', coyoacan: 'cdmx', 'coyoacán': 'cdmx', xochimilco: 'cdmx',
+    // Edo Mex
     'estado de mexico': 'estado de mexico', 'estado de méxico': 'estado de mexico', edomex: 'estado de mexico',
+    ixtlahuca: 'estado de mexico', toluca: 'estado de mexico', metepec: 'estado de mexico',
+    naucalpan: 'estado de mexico', tlalnepantla: 'estado de mexico', ecatepec: 'estado de mexico',
 };
 
 /** Topes por alimento (desayuno/comida/cena). Fuente: MANUAL_VIATICOS.md — Anexo 2. */
@@ -60,6 +71,26 @@ export const VIA_POLITICAS = {
     devolucion_cancelacion: 'En cancelación de viaje, devolver el importe total en máximo 2 días hábiles.',
 };
 
+/** Distancias aproximadas entre regiones (puntos clave). Fuente: Logística Conserva. */
+export const VIA_DISTANCIAS = {
+    merida: { tabasco: 540, chiapas: 1045, puebla: 1160, cdmx: 1300, edomex: 1350 },
+    tabasco: { merida: 540, chiapas: 300, puebla: 630, cdmx: 750, edomex: 810 },
+    chiapas: { merida: 1045, tabasco: 300, puebla: 715, cdmx: 840, edomex: 860 },
+    puebla: { merida: 1160, tabasco: 630, chiapas: 715, cdmx: 130, edomex: 180 },
+    cdmx: { merida: 1300, tabasco: 750, chiapas: 840, puebla: 130, edomex: 65 },
+    edomex: { merida: 1350, tabasco: 810, chiapas: 860, puebla: 180, cdmx: 65 },
+};
+
+/** Mapeo de ubicación (sucursal/área) a región base. */
+export const VIA_UBICACION_MAP = {
+    'merida': 'merida', 'mérida': 'merida', 'yucatán': 'merida', 'yucatan': 'merida',
+    'tabasco': 'tabasco', 'villahermosa': 'tabasco', 'chontalpa': 'tabasco', 'cardenas': 'tabasco', 'huimanguillo': 'tabasco', 'cunduacan': 'tabasco', 'teapa': 'tabasco', 'humberto': 'tabasco',
+    'chiapas': 'chiapas', 'tuxtla': 'chiapas', 'comitan': 'chiapas', 'tapachula': 'chiapas', 'bochil': 'chiapas', 'tonala': 'chiapas', 'villaflores': 'chiapas', 'teran': 'chiapas', 'sur oriente': 'chiapas', 'oriente': 'chiapas', 'centro': 'chiapas',
+    'puebla': 'puebla', 'cholula': 'puebla',
+    'mexico': 'edomex', 'méxico': 'edomex', 'edomex': 'edomex', 'toluca': 'edomex',
+    'direccion': 'cdmx', 'corporativo': 'cdmx', 'consejo': 'cdmx', 'presidencia': 'cdmx', 'marketing': 'cdmx', 'ti': 'cdmx', 'riesgos': 'cdmx', 'juridica': 'cdmx', 'finanzas': 'cdmx', 'administracion': 'cdmx',
+};
+
 // ─── CRÉDITO (MAN) ───────────────────────────────────────────────────────────
 
 export const MAN_DATA = {
@@ -67,6 +98,7 @@ export const MAN_DATA = {
     // ── MUJERES DE PALABRA ───────────────────────────────────────────────────
     MAN_SOL: {
         nombre: 'Manual de Crédito Mujeres de Palabra / Crédito Solidario',
+        descripcion: 'Crédito grupal diseñado para mujeres con actividad productiva. Fomenta el crecimiento mutuo mediante la responsabilidad solidaria.',
         fuente: 'MAN-SOL Manual de Crédito Mujeres de Palabra — Catálogo de Producto',
         temas: ['Montos', 'Plazos', 'Tasas e intereses', 'Integrantes del grupo', 'Requisitos', 'Garantías', 'Bonificación', 'Seguro de vida', 'Cobranza y mora'],
         montos: {
@@ -130,6 +162,7 @@ export const MAN_DATA = {
     // ── CONSERVA T ACTIVA ────────────────────────────────────────────────────
     MAN_TAC: {
         nombre: 'Manual de Crédito Conserva T Activa',
+        descripcion: 'Crédito solidario para grupos pequeños (2-5 integrantes). Ideal para impulsar negocios mediante el apoyo conjunto de manera ágil.',
         fuente: 'MAN-TAC Manual de Crédito T Activa — Catálogo de Producto',
         temas: ['Montos', 'Plazos', 'Tasas e intereses', 'Integrantes del grupo', 'Requisitos', 'Garantías', 'Bonificación', 'Seguro'],
         montos: {
@@ -163,6 +196,7 @@ export const MAN_DATA = {
     // ── CRÉDITO INDIVIDUAL ──────────────────────────────────────────────────
     MAN_IND: {
         nombre: 'Manual de Crédito Individual (Tu Negocio con CONSERVA)',
+        descripcion: 'Financiamiento directo para personas con actividades productivas comprobables, orientado al crecimiento y mejora de negocios en marcha.',
         fuente: 'MAN-IND Manual de Crédito Individual — Catálogo de Producto',
         temas: ['Montos', 'Plazos', 'Tasas e intereses', 'Requisitos', 'Garantías', 'Seguro de vida', 'Cobranza'],
         montos: {
@@ -195,6 +229,7 @@ export const MAN_DATA = {
     // ── TU HOGAR ─────────────────────────────────────────────────────────────
     MAN_HOG: {
         nombre: 'Manual de Crédito Tu Hogar con CONSERVA',
+        descripcion: 'Crédito individual destinado a facilitar la ampliación, mejora, remodelación o rehabilitación de vivienda para trabajadores o emprendedores.',
         fuente: 'MAN-HOG Manual de Crédito Tu Hogar — Catálogo de Producto',
         temas: ['Montos', 'Plazos', 'Tasas e intereses', 'Requisitos', 'Garantías', 'Destino del crédito', 'Comprobación del uso'],
         montos: {
@@ -239,6 +274,7 @@ export const MAN_DATA = {
     // ── CRÉDITO PARALELO ─────────────────────────────────────────────────────
     MAN_PAR: {
         nombre: 'Manual de Crédito Paralelo (Adicional o De Campaña)',
+        descripcion: 'Financiamiento adicional y exclusivo para clientas vigentes de Mujeres de Palabra que cuentan con excelente historial de pagos.',
         fuente: 'MAN-PAR Manual de Crédito Paralelo — Catálogo de Producto',
         temas: ['Montos', 'Plazos', 'Tasas e intereses', 'Requisitos de elegibilidad', 'Garantías', 'Seguro', 'Cobranza'],
         montos: {
@@ -283,8 +319,15 @@ export const MAN_DATA = {
     // ── CAJA CHICA ────────────────────────────────────────────────────────────
     MAN_CAJ: {
         nombre: 'Manual de Caja Chica',
+        descripcion: 'Fondo revolvente destinado a cubrir gastos menores, urgentes y de operación básica en sucursales o corporativo.',
         fuente: 'MAN-CAJ Manual de Políticas y Procedimientos de Caja Chica — Código CVS-CA-MPR-02',
-        temas: ['Montos y fondos', 'Gastos permitidos', 'Gastos no permitidos', 'Comprobación', 'Reembolso'],
+        temas: [
+            'Control de aprobaciones y modificaciones',
+            'Control del proceso',
+            'Responsable',
+            'Control y manejo de caja chica',
+            'Comprobación y reembolso'
+        ],
         montos: {
             sucursal_max: 2000,
             corporativo_min: 2500,
@@ -315,13 +358,54 @@ export const MAN_DATA = {
         ],
         comprobacion: {
             plazo: 'Mensual y en la última semana del mes. En diciembre: máximo el día 20.',
-            forma: 'Formato de Comprobación de Gastos (Anexo 2) + CFDI (PDF y XML). Sin factura: Formato en Vale (Anexo 3).',
-            vales: 'Máximo 5 vales al mes sin exceder $100 cada uno.',
+            forma: 'Formato de Comprobación de Gastos (Anexo 2) + CFDI (PDF y XML). Sin factura: Formato en Vale o Vale Azul (Anexo 3).',
+            vales: 'Máximo 5 vales (también conocidos como vales azules) al mes sin exceder $100 cada uno.',
         },
         reembolso: {
             plazo: 'Mínimo 3 días hábiles después de recibida la comprobación sin observaciones.',
             contacto: 'Dennis Camacho Salazar — dcamacho@grupoconserva.mx',
         },
+    },
+
+    // ── AUDITORÍA INTERNA ────────────────────────────────────────────────────
+    MAN_AUD: {
+        nombre: 'Manual de Auditoría Interna',
+        descripcion: 'Evalúa, controla e identifica áreas de mejora en las labores de GRUPO CONSERVA mediante auditorías operativas, administrativas y metodológicas.',
+        fuente: 'MAN-AUD Manual de Auditoría Interna',
+        temas: [
+            'Auditoría genera valor',
+            'Independencia obligatoria',
+            'Planeación por riesgo',
+            'Control del crédito',
+            'Calificación por sucursal',
+            'Tickets con seguimiento',
+            'Ética exigible',
+            'Sanciones progresivas reales'
+        ],
+        genera_valor: {
+            texto: 'El manual establece que la auditoría no debe limitarse a detectar errores o incumplimientos, sino que su propósito central es generar valor para la organización. Esto significa que cada revisión debe terminar con recomendaciones que mejoren procesos, reduzcan costos o fortalezcan operaciones, convirtiendo al auditor en un aliado estratégico del negocio y no en un agente punitivo.'
+        },
+        independencia: {
+            texto: 'El auditor interno debe estar libre de cualquier influencia externa al determinar el alcance de su trabajo, ejecutarlo e informar los resultados. Esto implica que no puede evaluar operaciones en las que haya tenido responsabilidad previa, y que debe revelar por escrito cualquier conflicto de interés que limite su objetividad. Sin esta independencia, los resultados de auditoría pierden toda credibilidad institucional.'
+        },
+        planeacion: {
+            texto: 'Antes de definir qué sucursales o áreas se auditarán, se debe realizar un análisis de riesgo que considere factores como la plataforma tecnológica, cambios organizacionales, resultados de auditorías previas, tamaño de la unidad y entorno operativo. Este análisis es lo que permite asignar los recursos de auditoría de forma inteligente: más profundidad y tiempo en las áreas de mayor riesgo, y menor intensidad en las que están bien controladas.'
+        },
+        control_credito: {
+            texto: 'CONSERVA desarrolló desde 2015 una herramienta propia basada en la norma ISO-9000 que evalúa todos los eslabones del proceso crediticio: desde la promoción y la plática informativa, hasta la cobranza extrajudicial y la renovación del crédito. Lo importante es que esta herramienta no solo revisa documentos, sino que el auditor acompaña al promotor en campo, entrevista clientes y observa directamente cómo se ejecuta la metodología, detectando desviaciones en tiempo real.'
+        },
+        calificacion: {
+            texto: 'Cada sucursal auditada recibe una calificación porcentual que la ubica en uno de cuatro niveles de riesgo: Controlado (95-100%), Bajo (90-94.99%), Medio (85-89.99%) o Alto (menor al 85%). Esta calificación no es solo un número — lleva asociada una recomendación de acción específica, desde simplemente mantener el rumbo en sucursales "A", hasta implementar auditorías más frecuentes con compromisos formales de mejora en sucursales "D". Al final del ejercicio, estas calificaciones se presentan al Director Comercial y al Director General.'
+        },
+        tickets: {
+            texto: 'Cada observación o recomendación relevante derivada de una auditoría se documenta en un "ticket" que se entrega firmado al Director de área responsable, quien debe comprometerse a una fecha de cumplimiento. El estatus de todos los tickets es accesible vía Google Drive tanto para el Director General como para el Consejo de Administración, y se reporta mensualmente. Esto elimina la posibilidad de que las observaciones queden en el olvido y crea una rendición de cuentas trazable y auditable.'
+        },
+        etica: {
+            texto: 'Los cuatro principios del código — Integridad, Objetividad, Confidencialidad y Competencia — no son simplemente un enunciado de valores, sino que se traducen en reglas de conducta concretas y exigibles. Por ejemplo, el auditor no puede aceptar ningún beneficio que comprometa su juicio, debe revelar todos los hechos materiales aunque sean incómodos, y solo puede participar en trabajos para los cuales tenga la preparación suficiente. El personal asume este código como un acto voluntario que va más allá de lo que exige la ley.'
+        },
+        sanciones: {
+            texto: 'El manual define un catálogo claro de conductas sancionables con consecuencias progresivas: desde actas administrativas por no firmar un ticket o no responder a tiempo, pasando por descuentos de hasta el 50% del bono de aguinaldo por incumplir compromisos, hasta la baja definitiva e inicio de proceso legal para quien participe en un fraude o lo conozca y no lo reporte. Dos actas administrativas acumuladas equivalen a baja definitiva, sin importar el nivel jerárquico del colaborador implicado.'
+        }
     },
 };
 
@@ -342,7 +426,22 @@ export const TOPIC_KEYWORDS = {
     transporte: ['transporte', 'vuelo', 'avión', 'autobús', 'bus', 'pasaje', 'taxi', 'traslado'],
     internacional: ['extranjero', 'internacional', 'dólares', 'dolares', 'usd'],
     solicitud: ['solicitar viatico', 'pedir viatico', 'cómo pido', 'como pido', 'anticipación'],
-    comprobacion: ['comprobar', 'comprobación', 'factura', 'ticket', 'comprobante'],
+    comprobacion: ['comprobar', 'comprobación', 'factura', 'ticket', 'comprobante', 'vale', 'vales', 'vale azul', 'vales azules'],
+    custodia: ['custodia', 'cuenta bancaria', 'personal', '48 horas', 'responsable'],
+    botiquin: ['botiquín', 'botiquin', 'medicamento', 'medicina', 'curitas', 'primeros auxilios'],
+    excepciones: ['excepción', 'pagos mayores', '2000', '2,000', 'transferencia', 'cheque'],
+    aprobaciones: ['aprobación', 'aprobacion', 'aprobaciones', 'autorización', 'autorizacion', 'bitácora', 'bitacora'],
+    proceso: ['proceso', 'control del proceso', 'supervisión', 'supervision'],
+    responsable: ['responsable', 'titular', 'quién se encarga', 'quien se encarga'],
+    manejo: ['manejo', 'control y manejo', 'control de caja', 'arqueo', 'caja de seguridad'],
+    audi_valor: ['valor', 'genera valor', 'auditoria genera valor'],
+    audi_independencia: ['independencia', 'independencia obligatoria', 'objetividad', 'influencia'],
+    audi_planeacion: ['planeación', 'planeacion', 'riesgo', 'planeación por riesgo'],
+    audi_control_credito: ['control del crédito', 'control del credito', 'metodología', 'iso-9000'],
+    audi_calificacion: ['calificación', 'calificacion', 'sucursal', 'controlado', 'bajo', 'medio', 'alto', 'calificacion por sucursal'],
+    audi_tickets: ['ticket', 'tickets', 'seguimiento', 'compromiso', 'tickets con seguimiento'],
+    audi_etica: ['ética', 'etica', 'código', 'codigo', 'conducta', 'integridad', 'confidencialidad', 'competencia', 'etica exigible'],
+    audi_sanciones: ['sanción', 'sancion', 'sanciones', 'acta administrativa', 'baja', 'aguinaldo', 'sanciones progresivas', 'sanciones progresivas reales'],
 };
 
 /** Palabras clave → manual específico para Modo Directo de detección automática. */
@@ -354,4 +453,5 @@ export const MANUAL_KEYWORDS = {
     MAN_PAR: ['paralelo', 'adicional', 'campaña', 'crédito paralelo', 'credito paralelo'],
     MAN_CAJ: ['caja chica', 'fondeo de caja', 'fondo de caja'],
     MAN_VIA: ['viatico', 'viático', 'viáticos', 'hospedaje', 'viaje', 'comisión de viaje'],
+    MAN_AUD: ['auditoria', 'auditoría', 'auditoria interna', 'auditoría interna', 'auditoria metodologica', 'auditoría metodológica', 'auditor', 'auditores', 'control metodologico', 'control metodológico'],
 };

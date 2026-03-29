@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prototipos Huella Conserva</title>
+    <style>
+        :root {
+            --primary: #8bc34a;
+            --primary-dark: #689f38;
+            --bg-light: #f9fbf9;
+            --text-dark: #333;
+            --border-color: #e0e0e0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            background-color: #eef2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .phone-mockup {
+            width: 100%;
+            max-width: 800px;
+            height: 90vh;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Controles del prototipo */
+        .controls {
+            background: #333;
+            color: white;
+            padding: 15px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .controls button {
+            background: #555;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .controls button.active {
+            background: var(--primary);
+        }
+
+        /* Área del Chat */
+        .chat-area {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: white;
+        }
+
+        .system-message {
+            background: var(--bg-light);
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            max-width: 80%;
+        }
+
+        .accordion {
+            background: white;
+            border: 1px solid var(--border-color);
+            padding: 10px 15px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        /* Input Area Base */
+        .input-container {
+            padding: 15px 20px;
+            background: white;
+            border-top: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .text-input-wrapper {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .text-input-wrapper input {
+            flex: 1;
+            padding: 12px 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 30px;
+            outline: none;
+        }
+
+        .send-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        /* =========================================
+           PROPUESTA 1: QUICK REPLIES
+           ========================================= */
+        .quick-replies {
+            display: none;
+            gap: 10px;
+            margin-bottom: 15px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+        
+        .quick-replies::-webkit-scrollbar { height: 4px; }
+        .quick-replies::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+
+        .chip {
+            background: white;
+            border: 1px solid var(--primary);
+            color: var(--primary-dark);
+            padding: 8px 16px;
+            border-radius: 20px;
+            white-space: nowrap;
+            cursor: pointer;
+            font-size: 13px;
+            transition: 0.2s;
+        }
+
+        .chip:hover {
+            background: var(--bg-light);
+        }
+
+        /* =========================================
+           PROPUESTA 2: ACTION BAR
+           ========================================= */
+        .action-bar {
+            display: none;
+            gap: 15px;
+            margin-bottom: 10px;
+            padding: 0 10px;
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .action-btn:hover { color: var(--primary); }
+
+        /* =========================================
+           PROPUESTA 3: SPEED DIAL (FAB)
+           ========================================= */
+        .speed-dial-container {
+            display: none;
+            position: absolute;
+            bottom: 70px;
+            right: 20px;
+            flex-direction: column-reverse;
+            align-items: flex-end;
+            gap: 10px;
+        }
+
+        .fab-main {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 24px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+
+        .fab-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: flex-end;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+        }
+
+        .fab-menu.open {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .fab-item {
+            background: white;
+            border: 1px solid var(--border-color);
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="phone-mockup">
+        <div class="controls">
+            <button onclick="setView('prop1')" id="btn-prop1" class="active">1. Quick Replies</button>
+            <button onclick="setView('prop2')" id="btn-prop2">2. Action Bar</button>
+            <button onclick="setView('prop3')" id="btn-prop3">3. Speed Dial</button>
+        </div>
+
+        <div class="chat-area">
+            <div class="system-message">
+                <p style="margin-top:0; color:#333;"><strong>Sistema:</strong> Huella Conserva | v1.0 | Sanciones</p>
+                <div class="accordion">1. Omisión deliberada del líder de no documentar... (Folio 45) ▼</div>
+                <div class="accordion">2. Normalizar malas prácticas; justificar conductas... (Folio 50) ▼</div>
+                <div class="accordion">3. No documentar incidencias y reincidencias... (Folio 51) ▼</div>
+            </div>
+        </div>
+
+        <div class="input-container">
+            
+            <div class="quick-replies" id="view-prop1" style="display: flex;">
+                <div class="chip">🔍 Búsqueda por Folio</div>
+                <div class="chip">📜 Reglas Generales</div>
+                <div class="chip">⚖️ Nivel de Sanciones</div>
+                <div class="chip">📥 Formatos</div>
+                <div class="chip">↩️ Menú Principal</div>
+            </div>
+
+            <div class="action-bar" id="view-prop2">
+                <button class="action-btn">🔍 Buscar</button>
+                <button class="action-btn">📜 Reglas</button>
+                <button class="action-btn">⚖️ Niveles</button>
+                <button class="action-btn">📥 Formatos</button>
+            </div>
+
+            <div class="text-input-wrapper">
+                <input type="text" placeholder="Escribe tu consulta...">
+                <button class="send-btn">➤</button>
+            </div>
+
+            <div class="speed-dial-container" id="view-prop3">
+                <div class="fab-menu" id="fabMenu">
+                    <div class="fab-item">Búsqueda por Folio</div>
+                    <div class="fab-item">Reglas Generales</div>
+                    <div class="fab-item">Nivel de Sanciones</div>
+                    <div class="fab-item">Formatos para Descarga</div>
+                </div>
+                <button class="fab-main" onclick="toggleFab()">+</button>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        function setView(propId) {
+            // Ocultar todas las vistas
+            document.getElementById('view-prop1').style.display = 'none';
+            document.getElementById('view-prop2').style.display = 'none';
+            document.getElementById('view-prop3').style.display = 'none';
+            
+            // Resetear botones
+            document.getElementById('btn-prop1').classList.remove('active');
+            document.getElementById('btn-prop2').classList.remove('active');
+            document.getElementById('btn-prop3').classList.remove('active');
+
+            // Mostrar la seleccionada
+            if(propId === 'prop1') {
+                document.getElementById('view-prop1').style.display = 'flex';
+            } else if (propId === 'prop2') {
+                document.getElementById('view-prop2').style.display = 'flex';
+            } else if (propId === 'prop3') {
+                document.getElementById('view-prop3').style.display = 'flex';
+            }
+            
+            document.getElementById('btn-' + propId).classList.add('active');
+        }
+
+        function toggleFab() {
+            const menu = document.getElementById('fabMenu');
+            menu.classList.toggle('open');
+        }
+    </script>
+</body>
+</html>

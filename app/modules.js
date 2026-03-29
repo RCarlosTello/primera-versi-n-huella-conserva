@@ -14,9 +14,20 @@ import {
     MAN_DATA, TOPIC_KEYWORDS, MANUAL_KEYWORDS,
     VIA_HOSPEDAJE, VIA_DESTINOS_MAP, VIA_ALIMENTOS,
     VIA_GRUPOS, VIA_POLITICAS, VIA_INTERNACIONAL,
+    VIA_DISTANCIAS, VIA_UBICACION_MAP
 } from '../data/manuales.js';
 
+// Sanciones data is now lazy loaded in handleSAN()
+
 import { FAQS } from '../data/faqs.js';
+
+export { MANUAL_KEYWORDS };
+
+export const CON_TOPICS = [
+    { label: 'Misión' }, { label: 'Visión' }, { label: 'Historia' }, 
+    { label: 'Valores' }
+];
+
 
 // ─── MOD-CON-001 ─────────────────────────────────────────────────────────────
 const CON_INFO = {
@@ -26,6 +37,7 @@ const CON_INFO = {
     mantra: `Desarrollo y Bienestar`,
     valores: `Liderazgo, Enfoque a Logros, Compromiso, Lealtad, Colaborador y Formador, Sentido Humano, Resiliencia.`,
     dominio: `@grupoconserva.mx | Sector microfinanciero | CONSERVA SOFOM ENR`,
+    historia: `📅 **Nuestra Historia — Grupo CONSERVA**\n\n🌱 **1999:** Nacimos como **CONSERVA** con la finalidad de apoyar a las mujeres marginadas del estado de Chiapas a través de proyectos productivos de desarrollo social.\n\n💳 **2000:** Incursionamos en los **microcréditos**, buscando nuevas formas de apoyar a las microempresarias y jefas de familia.\n\n🚀 **Expansión y Crecimiento:**\n- **2003:** Ampliamos nuestros servicios hacia el estado de **Tabasco**.\n- **2008:** Abrimos sucursales en el estado de **Yucatán**.\n- **2016:** Iniciamos operaciones en **Puebla**.\n- **2019:** Llegamos a **Campeche**.\n- **2022:** Iniciamos operaciones en el **Estado de México**.\n\n👥 **Actualidad:** Hoy miles de personas se benefician con Conserva, gracias a un equipo que ofrece servicios con **calidad, respeto y calidez**, ganando reconocimiento local e internacional.\n\n🏆 **Compromiso Social:** Desde el año **2010** contamos con el distintivo de **Empresa Socialmente Responsable (ESR)**, el cual trabajamos año con año para mantener.`,
 };
 
 export function handleCON(query) {
@@ -42,13 +54,17 @@ export function handleCON(query) {
         content = `**Mantra de CONSERVA:** ${CON_INFO.mantra}`; seccion = 'Mantra';
     } else if (q.includes('valor') || q.includes('principio')) {
         content = `**Valores de CONSERVA:**\n\n${CON_INFO.valores}`; seccion = 'Valores';
-    } else if (q.includes('correo') || q.includes('dominio') || q.includes('empresa')) {
-        content = `**Dominio institucional:** ${CON_INFO.dominio}`; seccion = 'Estructura';
+    } else if (q.includes('historia') || q.includes('trayectoria') || q.includes('fundación') || q.includes('inicio')) {
+        content = CON_INFO.historia; seccion = 'Historia';
     } else {
-        content = `**Conócenos — Grupo CONSERVA**\n\n**Propósito:** ${CON_INFO.proposito}\n\n**Misión:** ${CON_INFO.mision}\n\n**Visión:** ${CON_INFO.vision}\n\n**Mantra:** ${CON_INFO.mantra}\n\n**Valores:** ${CON_INFO.valores}`;
+        content = `**Conócenos — Grupo CONSERVA**\n\n**Propósito:** ${CON_INFO.proposito}\n\n**Historia:** ${CON_INFO.historia.substring(0, 150)}...\n\n**Misión:** ${CON_INFO.mision}\n\n**Visión:** ${CON_INFO.vision}\n\n**Mantra:** ${CON_INFO.mantra}\n\n**Valores:** ${CON_INFO.valores}`;
         seccion = 'Información General';
     }
-    return { content, source: `MOD-CON-001 — ${seccion}` };
+    return { 
+        content, 
+        source: `MOD-CON-001 — ${seccion}`,
+        botonesTemas: ['Misión', 'Visión', 'Historia', 'Valores']
+    };
 }
 
 // ─── MOD-MAN-002 ─────────────────────────────────────────────────────────────
@@ -63,17 +79,17 @@ export const MAN_LINEAS = [
     // Caja Chica es accesible desde el menú principal (botón 4), no como línea de crédito
 ];
 
-/** Lista de líneas INCLUYENDO Caja Chica (para búsqueda interna, no para el menú) */
+/** Lista de líneas INCLUYENDO Caja Chica y Auditoría (para búsqueda interna, no para el menú principal de créditos) */
 const ALL_LINEAS = [
     ...MAN_LINEAS,
     { id: 'MAN_CAJ', label: 'Caja Chica' },
+    { id: 'MAN_AUD', label: 'Auditoría Interna' }
 ];
 
 /** Paso 1 del Modo Guiado: pregunta qué línea desea consultar. */
 export function handleMANLineasPrompt() {
-    const opts = MAN_LINEAS.map((l, i) => `**${i + 1}.** ${l.label}`).join('\n');
     return {
-        content: `Para darte información precisa del manual oficial, indícame sobre cuál línea deseas consultar:\n\n${opts}\n\nEscribe el **número** o el **nombre** de la línea.`,
+        content: `Para darte información precisa del manual oficial, indícame sobre cuál línea deseas consultar:`,
         source: null,
         needsLinea: true,
     };
@@ -85,10 +101,10 @@ export function handleMANTemasPrompt(linea) {
     if (!data) return { content: `Manual no encontrado para la línea seleccionada.`, source: null };
 
     return {
-        content: `Consultando el **${data.nombre}**. ¿Sobre qué tema deseas información?`,
+        content: `Consultando el **${data.nombre}**.\n\n📝 *${data.descripcion}*\n\n¿Sobre qué tema deseas información?`,
         source: data.fuente,
         needsTema: true,
-        botonesTemas: [...data.temas, 'Regresar a Menú Principal'],
+        botonesTemas: [...data.temas],
     };
 }
 
@@ -101,6 +117,7 @@ export function detectLinea(input) {
     if (q === '4' || q.includes('hogar') || q.includes('vivienda')) return ALL_LINEAS[3];
     if (q === '5' || q.includes('paralelo') || q.includes('adicional') || q.includes('campaña')) return ALL_LINEAS[4];
     if (q.includes('caja chica')) return ALL_LINEAS[5];
+    if (q.includes('auditoria') || q.includes('auditoría') || q.includes('auditor') || q.includes('auditores')) return ALL_LINEAS[6];
     return null;
 }
 
@@ -114,7 +131,7 @@ export function detectManualDesdeQuery(query) {
 
     for (const [id, keywords] of Object.entries(MANUAL_KEYWORDS)) {
         if (keywords.some(k => q.includes(k))) {
-            const linea = MAN_LINEAS.find(l => l.id === id);
+            const linea = ALL_LINEAS.find(l => l.id === id);
             if (linea) coincidencias.push(linea);
         }
     }
@@ -128,7 +145,7 @@ export function detectManualDesdeQuery(query) {
  * Motor principal de respuesta para un manual específico.
  * Usa datos reales de MAN_DATA.
  */
-export function handleMAN(query, linea) {
+export function handleMAN(query, linea, collaborator) {
     const data = MAN_DATA[linea?.id];
     if (!data) {
         return {
@@ -162,8 +179,29 @@ export function handleMAN(query, linea) {
 
         // Si hay una coincidencia fuerte (más del 60% de las palabras clave encontradas)
         if (bestScore >= 0.6 && bestMatch) {
+            let answerText = bestMatch.a;
+
+            // ── RAZONAMIENTO DINÁMICO PARA CAJA CHICA (JERARQUÍA Y AUTORIZACIONES) ──
+            if (linea.id === 'MAN_CAJ' && (bestMatch.q.includes('autoriza') || bestMatch.q.includes('suplente') || bestMatch.q.includes('reembolso'))) {
+                const p = (collaborator?.puesto || '').toLowerCase();
+                if (p) {
+                    let escalon = 'tu jefe directo para firmas o autorizaciones';
+                    if (p.includes('promotor') || p.includes('analista') || p.includes('coordinador')) {
+                        escalon = 'el Gerente de tu Sucursal';
+                    } else if (p.includes('gerente de sucursal')) {
+                        escalon = 'el Gerente Regional';
+                    } else if (p.includes('gerente regional')) {
+                        escalon = 'el Subdirector o Director de tu área corporativa';
+                    } else if (p.includes('director') || p.includes('subdirector')) {
+                        escalon = 'la Dirección General';
+                    }
+
+                    answerText += `\n\n> 👤 **Nota basada en tu puesto actual (${collaborator.puesto}):** Recuerda que en la cadena jerárquica, el siguiente escalón al que debes acudir es **${escalon}**.`;
+                }
+            }
+
             return {
-                content: `He encontrado información específica en **${data.nombre}** que responde a tu consulta:\n\n💬 **${bestMatch.a}**`,
+                content: `He encontrado información específica en **${data.nombre}** que responde a tu consulta:\n\n💬 ${answerText}`,
                 source: data.fuente
             };
         }
@@ -219,11 +257,42 @@ export function handleMAN(query, linea) {
         return _respCobranza(data);
     }
 
+    // ── CAJA CHICA (Nuevos temas solicitados) ─────────────────────────
+    if (linea.id === 'MAN_CAJ') {
+        if (esTema(TOPIC_KEYWORDS.aprobaciones, 'control de aprobaciones y modificaciones')) {
+            return _respAprobaciones(data);
+        }
+        if (esTema(TOPIC_KEYWORDS.proceso, 'control del proceso')) {
+            return _respProceso(data);
+        }
+        if (esTema(TOPIC_KEYWORDS.responsable, 'responsable')) {
+            return _respResponsable(data);
+        }
+        if (esTema(TOPIC_KEYWORDS.manejo, 'control y manejo de caja chica')) {
+            return _respManejo(data);
+        }
+        if (esTema([...(TOPIC_KEYWORDS.comprobacion || []), 'reembolso', 'comprobación y reembolso'], 'comprobación y reembolso')) {
+            return _respComprobacionReembolso(data);
+        }
+    }
+
+    // ── AUDITORÍA INTERNA ─────────────────────────────────────────────
+    if (linea.id === 'MAN_AUD') {
+        if (esTema(TOPIC_KEYWORDS.audi_valor, 'auditoría genera valor')) return { content: data.genera_valor.texto, source: data.fuente };
+        if (esTema(TOPIC_KEYWORDS.audi_independencia, 'independencia obligatoria')) return { content: data.independencia.texto, source: data.fuente };
+        if (esTema(TOPIC_KEYWORDS.audi_planeacion, 'planeación por riesgo')) return { content: data.planeacion.texto, source: data.fuente };
+        if (esTema(TOPIC_KEYWORDS.audi_control_credito, 'control del crédito')) return { content: data.control_credito.texto, source: data.fuente };
+        if (esTema(TOPIC_KEYWORDS.audi_calificacion, 'calificación por sucursal')) return { content: data.calificacion.texto, source: data.fuente };
+        if (esTema(TOPIC_KEYWORDS.audi_tickets, 'tickets con seguimiento')) return { content: data.tickets.texto, source: data.fuente };
+        if (esTema(TOPIC_KEYWORDS.audi_etica, 'ética exigible')) return { content: data.etica.texto, source: data.fuente };
+        if (esTema(TOPIC_KEYWORDS.audi_sanciones, 'sanciones progresivas reales')) return { content: data.sanciones.texto, source: data.fuente };
+    }
+
     // ── RESPUESTA GENERAL con temas disponibles ───────────────────────────────
     return {
-        content: `Consultando **${data.nombre}**. ¿Sobre qué tema deseas información?`,
+        content: `Consultando el **${data.nombre}**.\n\n📝 *${data.descripcion}*\n\n¿Sobre qué tema deseas información?`,
         source: data.fuente,
-        botonesTemas: [...data.temas, 'Regresar a Menú Principal'],
+        botonesTemas: [...data.temas, 'Regresar al Menú Principal'],
     };
 }
 
@@ -386,6 +455,42 @@ function _respCobranza(data) {
     return { content: txt, source: data.fuente };
 }
 
+
+function _respAprobaciones(data) {
+    return {
+        content: `Sobre el **Control de aprobaciones y modificaciones** (Punto 2):\n\n- Es responsabilidad del área de **Métodos y Procesos** mantener actualizada la **“Bitácora de Control de Cambios”** (Apartado 8).\n- La bitácora registra: Número de cambio, sección y página modificada, descripción, fecha de modificación, área solicitante y fecha de autorización final.`,
+        source: data.fuente
+    };
+}
+
+function _respProceso(data) {
+    return {
+        content: `Sobre el **Control del proceso** (Punto 3):\n\n- **Auditoría Interna** podrá realizar supervisiones transcurridos **60 días** después de la autorización del manual.\n- Se verificará que la asignación, el uso y la comprobación se desarrollen conforme a la normatividad.\n- Los usuarios deben cumplir sus responsabilidades sin exceder facultades ni incurrir en gastos no autorizados; para ello se realizan **revisiones periódicas y auditorías formales**.`,
+        source: data.fuente
+    };
+}
+
+function _respResponsable(data) {
+    return {
+        content: `Sobre el **Responsable** (Puntos 4 y Políticas Generales):\n\n- La titular de la **Dirección de Administración y Finanzas** es la responsable de elaborar y difundir este procedimiento.\n- La asignación del fondo queda a cargo del **Gerente Regional (Sucursales)** o del **Líder Inmediato (Corporativo)**.\n- El responsable debe firmar un **resguardo digital y un pagaré** original.\n- No se deben mantener valores en la cuenta personal por más de **48 horas hábiles**. En Sucursales se debe retirar el 100% del fondo a efectivo; en Corporativo, el 50%.`,
+        source: data.fuente
+    };
+}
+
+function _respManejo(data) {
+    return {
+        content: `La **Caja Chica** cubre urgencias operativas (papelería, café, reparaciones) y exige factura para montos mayores a **$100.00**. Está prohibido usarla para viáticos, préstamos, festejos o desechables de unicel. El efectivo debe resguardarse en caja de seguridad y admite máximo **5 vales mensuales** sin factura (menores a $100.00).\n\n📋 **Puntos Clave**\n\n- **Uso:** Solo papelería urgente, paquetería, mantenimiento menor e insumos básicos.\n- **Prohibido:** Viáticos, activos >$600.00, regalos y artículos de unicel.\n- **Comprobación:** Factura obligatoria si el gasto supera los **$100.00**.\n- **Control:** Arqueos sorpresivos y resguardo obligatorio en caja de seguridad.`,
+        source: data.fuente
+    };
+}
+
+function _respComprobacionReembolso(data) {
+    return {
+        content: `Sobre la **Comprobación y reembolso**:\n\n**Comprobación:**\n- Todo gasto deberá ser comprobado. Sucursales: Anexo 2 con CFDI o Anexo 3 (Vale Azul). Corporativo requiere autorización de la Dirección del Área.\n- Operaciones mayores a $2,000.00 pesos deberán realizarse por transferencia, tarjeta o cheque nominativo.\n\n**Reembolso:**\n- Toda solicitud se envía a la Analista de Administración por correo.\n- Deberá enviarse durante el mes y la última semana la comprobación.\n- Una vez recibida sin observaciones, el depósito de reembolso se realizará en un mínimo de 3 días hábiles.`,
+        source: data.fuente
+    };
+}
+
 // ─── MOD-VIA-006 ─────────────────────────────────────────────────────────────
 
 /** Determina el grupo de viáticos (A/B/C) desde el puesto del colaborador. */
@@ -404,19 +509,276 @@ function getTipoNomina(puesto) {
     return p.includes('eog') ? 'EOG' : 'SOFOM';
 }
 
-/** Detecta ciudad/destino mencionado en la query. */
-function detectDestino(query) {
+/** Detecta ciudad/destino mencionado en la query, priorizando el destino real. */
+function detectDestino(query, originRegion) {
     const q = (query || '').toLowerCase();
-    for (const [keyword, clave] of Object.entries(VIA_DESTINOS_MAP)) {
-        if (q.includes(keyword)) return clave;
+
+    // 1. Intentar detectar destino después de conectores "a", "hacia", "para"
+    const connectors = [' hacia ', ' a ', ' para ', ' al '];
+    for (const conn of connectors) {
+        const parts = q.split(conn);
+        if (parts.length > 1) {
+            const afterConn = parts[1].trim();
+            for (const [keyword, clave] of Object.entries(VIA_DESTINOS_MAP)) {
+                if (afterConn.includes(keyword)) return { region: clave, matched: keyword };
+            }
+        }
     }
+
+    // 2. Si no se detectó por conectores, buscar cualquier destino que NO sea el origen
+    for (const [keyword, clave] of Object.entries(VIA_DESTINOS_MAP)) {
+        if (q.includes(keyword) && clave !== originRegion) return { region: clave, matched: keyword };
+    }
+
+    // 3. Fallback: buscar cualquier ciudad mencionada
+    for (const [keyword, clave] of Object.entries(VIA_DESTINOS_MAP)) {
+        if (q.includes(keyword)) return { region: clave, matched: keyword };
+    }
+
     return null;
+}
+
+/** Obtiene la región base del colaborador desde su ubicación. */
+function getRegionOrigen(collaborator) {
+    const u = (collaborator?.ubicacion || '').toLowerCase();
+    for (const [kw, region] of Object.entries(VIA_UBICACION_MAP)) {
+        if (u.includes(kw)) return region;
+    }
+    return 'chiapas'; // Default si no se detecta (Chiapas es base central)
+}
+
+/** Calcula la distancia entre dos regiones. */
+function getDistanciaRegiones(r1, r2) {
+    if (r1 === r2) return 0; // Distancia cero si es la misma región
+    const dist = VIA_DISTANCIAS[r1]?.[r2] || VIA_DISTANCIAS[r2]?.[r1] || 0;
+    return dist;
 }
 
 export function handleVIA(query, collaborator) {
     const q = (query || '').toLowerCase();
 
-    // ── BÚSQUEDA EN FAQs ───────────────────────────────────────────────────────
+    // ── MENÚ GUIADO — respuestas directas para botones del sub-menú ──────────
+    if (q.includes('topes de hospedaje') || q === 'topes de hospedaje por ciudad') {
+        const grupo = getGrupoVIA(collaborator?.puesto || '');
+        const ciudades = [
+            { key: 'chiapas', label: 'Chiapas' }, { key: 'tabasco', label: 'Tabasco' },
+            { key: 'merida', label: 'Mérida' }, { key: 'puebla', label: 'Puebla' },
+            { key: 'cdmx', label: 'CDMX' }, { key: 'estado de mexico', label: 'Edo México' }
+        ];
+        const lista = ciudades.map(c => `- **${c.label}:** $${(VIA_HOSPEDAJE[c.key]?.[grupo] || 0).toLocaleString('es-MX')}.00 por noche`).join('\n');
+        return {
+            content: `🏨 **Topes de Hospedaje por Ciudad** (Grupo ${grupo}):\n\n${lista}\n\n📝 ${VIA_POLITICAS.anticipacion}`,
+            source: 'MOD-VIA-006 MANUAL_VIATICOS — Anexo 1',
+            botonesTemas: ['Viáticos de Alimentos', 'Reglas de Transporte', 'Calcular Viáticos (ruta y días)']
+        };
+    }
+    if (q.includes('viáticos de alimentos') || q.includes('viaticos de alimentos')) {
+        const grupo = getGrupoVIA(collaborator?.puesto || '');
+        const sofom = VIA_ALIMENTOS[grupo]?.SOFOM || 0;
+        const eog = VIA_ALIMENTOS[grupo]?.EOG || 0;
+        return {
+            content: `🍽️ **Viáticos de Alimentos** (Grupo ${grupo}):\n\n- **SOFOM:** $${sofom.toLocaleString('es-MX')}.00 por alimento ($${(sofom*3).toLocaleString('es-MX')}.00 diarios)\n- **EOG:** $${eog.toLocaleString('es-MX')}.00 por alimento ($${(eog*3).toLocaleString('es-MX')}.00 diarios)\n\n⚠️ ${VIA_POLITICAS.distancia_alimentos}`,
+            source: 'MOD-VIA-006 MANUAL_VIATICOS — Anexo 2',
+            botonesTemas: ['Topes de Hospedaje por Ciudad', 'Reglas de Transporte']
+        };
+    }
+    if (q.includes('reglas de transporte')) {
+        return {
+            content: `🚌 **Reglas de Transporte:**\n\n- Distancias **< 500 km**: Viaje terrestre obligatorio.\n- Distancias **> 500 km**: Se puede solicitar avión (clase económica) con **15 días hábiles** de anticipación.\n- Pagos de hospedaje o autobús en efectivo: máximo **$${Number(VIA_POLITICAS.pago_max_efectivo.match(/\d[\d,]*/)[0].replace(',','')).toLocaleString('es-MX')}**.\n\n📅 Anticipación mínima: ${VIA_POLITICAS.anticipacion}`,
+            source: 'MOD-VIA-006 MANUAL_VIATICOS',
+            botonesTemas: ['Calcular Viáticos (ruta y días)', 'Topes de Hospedaje por Ciudad']
+        };
+    }
+    if (q.includes('calcular viáticos') || q.includes('calcular viaticos')) {
+        return {
+            content: `🧮 **Calcular Viáticos**\n\nDime el origen, destino y número de días para calcular tu presupuesto exacto.\n\n*Ejemplo:* "Voy de Tuxtla a CDMX 3 días"\n*Ejemplo:* "Viajo de Puebla a Mérida 2 noches"`,
+            source: 'MOD-VIA-006 MANUAL_VIATICOS',
+        };
+    }
+    if (q.includes('anticipación y comprobación') || q.includes('anticipacion y comprobacion') || q.includes('comprobación') || q.includes('comprobacion')) {
+        return {
+            content: `📋 **Anticipación y Comprobación de Viáticos:**\n\n**Solicitud:**\n- ${VIA_POLITICAS.anticipacion}\n\n**Comprobación:**\n- ${VIA_POLITICAS.comprobacion_plazo}\n- Requiere facturas CFDI (PDF y XML).\n\n**Gastos no válidos:**\n- ${VIA_POLITICAS.gastos_no_validos}\n\n**Cancelación:**\n- ${VIA_POLITICAS.devolucion_cancelacion}`,
+            source: 'MOD-VIA-006 MANUAL_VIATICOS',
+            botonesTemas: ['Topes de Hospedaje por Ciudad', 'Regresar al Menú Principal']
+        };
+    }
+    if (q.includes('internacional') || q.includes('extranjero') || q.includes('dólares') || q.includes('dolares') || q.includes('usd')) {
+        return {
+            content: `🌍 **Viáticos Internacionales:**\n\n- **Monto:** $${VIA_INTERNACIONAL.por_dia_usd} USD por día para alimentación y transportes locales.\n- **Nota:** ${VIA_INTERNACIONAL.nota}`,
+            source: 'MOD-VIA-006 MANUAL_VIATICOS — Internacionales',
+            botonesTemas: ['Topes de Hospedaje por Ciudad', 'Reglas de Transporte', 'Regresar al Menú Principal']
+        };
+    }
+
+    // Identificar Puesto (Permitir simulación si se menciona "Soy X")
+    let puesto = collaborator?.puesto || 'Colaborador';
+    const roleMatch = q.match(/soy\s+([^,.]+)/);
+    if (roleMatch) {
+        const simulatedRole = roleMatch[1].trim();
+        const pLow = simulatedRole.toLowerCase();
+        if (Object.values(VIA_GRUPOS).flat().some(k => pLow.includes(k))) {
+            puesto = simulatedRole;
+        }
+    }
+    const grupo = getGrupoVIA(puesto);
+    const tipoNomina = getTipoNomina(puesto);
+
+    const origenRegion = getRegionOrigen(collaborator);
+    const destinoData = detectDestino(q, origenRegion);
+    const destinoRegion = destinoData?.region;
+    const destinoLabel = destinoData ? (destinoData.matched.toUpperCase() !== destinoRegion.toUpperCase() ? `${destinoData.matched.toUpperCase()} (${destinoRegion.toUpperCase()})` : destinoRegion.toUpperCase()) : '';
+
+    // ── CÁLCULO DINÁMICO ESTRUCTURADO (Golden Rule) ──────────────────────────────────
+    const diasMatch = q.match(/(\d+)\s*d[ií]as?/);
+    const nochesMatch = q.match(/(\d+)\s*noches?/);
+
+    let calcDias = 0;
+    let calcNoches = 0;
+
+    if (nochesMatch) {
+        calcNoches = parseInt(nochesMatch[1], 10);
+        calcDias = calcNoches + 1;
+    } else if (diasMatch) {
+        calcDias = parseInt(diasMatch[1], 10);
+        calcNoches = Math.max(0, calcDias - 1);
+    }
+
+    // Respuesta para consultas de ciudad específica sin días
+    if (destinoData && calcDias === 0) {
+        const distancia = getDistanciaRegiones(origenRegion, destinoRegion);
+        const montoNoche = VIA_HOSPEDAJE[destinoRegion]?.[grupo] || 0;
+        const montoAlimento = VIA_ALIMENTOS[grupo]?.[tipoNomina] || 0;
+
+        let customRes = `📍 **Consulta de Viáticos (${destinoLabel})**\n\n`;
+        customRes += `**Puesto:** ${puesto} (Grupo ${grupo}).\n\n`;
+
+        if (distancia < 50) {
+            customRes += `⚠️ **Aviso:** Dentro de la misma ciudad o en distancias menores a 50 km no hay autorización para viáticos de hospedaje ni alimentación; para casos excepcionales, consulte con su jefe inmediato.\n\n`;
+        } else {
+            customRes += `**Monto Autorizado:** Te corresponde un máximo de **$${montoNoche.toLocaleString('es-MX')}.00** por noche de hospedaje en ${destinoLabel} y **$${montoAlimento.toLocaleString('es-MX')}.00** por cada alimento ($${(montoAlimento * 3).toLocaleString('es-MX')}.00 diarios).\n\n`;
+            if (destinoRegion === 'cdmx') {
+                customRes += `⚠️ **Nota:** En CDMX el importe puede modificarse de acuerdo con la zona del evento.\n\n`;
+            }
+        }
+
+        customRes += `¿Deseas que calcule el total para una ruta y días específicos? (ej. "Voy de Puebla a CDMX 2 días")`;
+
+        return {
+            content: customRes,
+            source: `MOD-VIA-006 MANUAL_VIATICOS — Anexo 1 y 2`
+        };
+    }
+
+    // Ruta y cálculo completo
+    if (calcDias > 0 && destinoData) {
+        const distancia = getDistanciaRegiones(origenRegion, destinoRegion);
+        const montoNoche = VIA_HOSPEDAJE[destinoRegion]?.[grupo] || 0;
+        const montoAlimento = VIA_ALIMENTOS[grupo]?.[tipoNomina] || 0;
+        const montoAlimentoDiario = montoAlimento * 3;
+
+        let totalHospedaje = montoNoche * calcNoches;
+        let totalAlimentos = montoAlimentoDiario * calcDias;
+
+        if (distancia < 50) {
+            totalHospedaje = 0;
+            totalAlimentos = 0;
+        }
+
+        const granTotal = totalHospedaje + totalAlimentos;
+
+        let res = `**Ruta:** ${origenRegion.charAt(0).toUpperCase() + origenRegion.slice(1)} a ${destinoLabel} (Aprox. ${distancia || '<50'} KM).\n\n`;
+        res += `**Puesto:** ${puesto} (Grupo ${grupo}).\n\n`;
+
+        // Transporte
+        if (distancia < 50) {
+            res += `**Transporte:** Al ser una distancia menor a 50 km de tu origen, el transporte no es reembolsable conforme al manual.\n\n`;
+        } else if (distancia < 500) {
+            res += `**Transporte:** Al ser una distancia menor a 500 km, el viaje debe ser terrestre.\n\n`;
+        } else {
+            res += `**Transporte:** Al superar los 500 km, puedes solicitar transporte aéreo (clase económica) con 15 días de anticipación.\n\n`;
+        }
+
+        // Monto Autorizado
+        if (distancia < 50) {
+            res += `**Monto Autorizado:** Dentro de la misma ciudad no hay autorización para viáticos; para casos excepcionales, consulte con su jefe inmediato.\n\n`;
+        } else {
+            res += `**Monto Autorizado:** Te corresponde un máximo de **$${montoNoche.toLocaleString('es-MX')}.00** por noche de hospedaje en ${destinoLabel} y **$${montoAlimento.toLocaleString('es-MX')}.00** por cada alimento ($${montoAlimentoDiario.toLocaleString('es-MX')}.00 diarios).\n\n`;
+        }
+
+        // Total Estimado
+        res += `**Total Estimado (${calcDias} días / ${calcNoches} noche${calcNoches !== 1 ? 's' : ''}):** **$${granTotal.toLocaleString('es-MX')}.00 pesos.**\n\n`;
+
+        // Notas y Advertencias
+        if (distancia < 50) {
+            res += `⚠️ **Advertencia:** Al ser una distancia menor a 50 km de tu origen, los alimentos y transporte no son reembolsables conforme al manual.`;
+        } else {
+            res += `**Nota:** Al superar los 50 km de tu origen, tus alimentos son comprobables con factura fiscal (CFDI).`;
+        }
+
+        return {
+            content: res,
+            source: `MOD-VIA-006 MANUAL_VIATICOS — Anexo 1 y 2`
+        };
+    }
+
+    // ── SECCIONES ESPECÍFICAS (GOLDEN RULE) ────────────────────────────────────────
+    // Priorizamos lógica personalizada sobre FAQ general para evitar tablas de comparación.
+
+    let respuestas = [];
+    let fuentes = new Set();
+    let adjuntarPlantilla = false;
+
+
+    if (q.includes('hospedaje') || q.includes('hotel') || q.includes('alojamiento') || q.includes('noche')) {
+        fuentes.add(`MOD-VIA-006 MANUAL_VIATICOS — Anexo 1`);
+        if (destinoData) {
+            const monto = VIA_HOSPEDAJE[destinoRegion]?.[grupo];
+            if (monto) respuestas.push(`Tu tope de hospedaje en **${destinoLabel}** es de **$${monto.toLocaleString('es-MX')}.00 por noche**.`);
+        } else {
+            const ciudades = [
+                { key: 'chiapas', label: 'Chiapas' },
+                { key: 'tabasco', label: 'Tabasco' },
+                { key: 'cdmx', label: 'CDMX' },
+                { key: 'merida', label: 'Mérida' },
+                { key: 'estado de mexico', label: 'Edo México' },
+                { key: 'puebla', label: 'Puebla' }
+            ];
+
+            let lista = ciudades
+                .filter(c => c.key !== origenRegion)
+                .map(c => `- **${c.label}:** $${(VIA_HOSPEDAJE[c.key]?.[grupo] || 0).toLocaleString('es-MX')}.00`)
+                .join('\n');
+
+            respuestas.push(`Para tu puesto de **${puesto}**, estos son los montos máximos autorizados por noche:\n\n${lista}${origenRegion === 'cdmx' ? '' : '\n\n> ⚠️ En CDMX el importe puede modificarse según la zona.'}`);
+        }
+    }
+
+    if (q.includes('alimento') || q.includes('comida') || q.includes('desayuno') || q.includes('cena')) {
+        const monto = VIA_ALIMENTOS[grupo]?.[tipoNomina];
+        fuentes.add(`MOD-VIA-006 MANUAL_VIATICOS — Anexo 2`);
+        respuestas.push(`De acuerdo a tu nivel de puesto, te corresponden **$${monto.toLocaleString('es-MX')}.00** por cada alimento ($${(monto * 3).toLocaleString('es-MX')}.00 diarios).`);
+    }
+
+    if (q.includes('transporte') || q.includes('vuelo') || q.includes('avión')) {
+        fuentes.add(`MOD-VIA-006 MANUAL_VIATICOS — Transporte`);
+        respuestas.push(`**Regla de Transporte:**\n- Distancias < 500 km: Terrestre obligatorio.\n- Distancias > 500 km: Puede ser avión (clase económica) con 15 días de anticipación.`);
+    }
+
+    if (q.includes('comprobar') || q.includes('factura') || q.includes('plantilla')) {
+        fuentes.add(`MOD-VIA-006 MANUAL_VIATICOS — Comprobación`);
+        respuestas.push(`**Comprobación:** Plazo de 2 días hábiles tras el viaje. Requiere facturas PDF y XML.`);
+        adjuntarPlantilla = true;
+    }
+
+    if (respuestas.length > 0) {
+        return {
+            content: `He revisado la Política de Viáticos para tu nivel (**${puesto}**):\n\n` + respuestas.join('\n\n'),
+            source: Array.from(fuentes).join(' | '),
+            adjunto: adjuntarPlantilla ? { nombre: 'Plantilla de Gastos.xlsm', url: '/plantilla de gastos.xlsm', descripcion: 'Formato oficial de comprobación' } : null
+        };
+    }
+
+    // FAQ y búsquedas generales
     if (FAQS && FAQS['MAN_VIA']) {
         const qClean = q.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\w\s]/gi, '');
         const qWords = qClean.split(/\s+/).filter(w => w.length > 3);
@@ -437,113 +799,212 @@ export function handleVIA(query, collaborator) {
             }
         }
 
-        // Si hay coincidencia fuerte
         if (bestScore >= 0.6 && bestMatch) {
             let answerText = bestMatch.a;
 
-            // ── RAZONAMIENTO DINÁMICO PARA DEVOLUCIÓN DE VIÁTICOS ──
-            const moneyMatch = q.match(/\$(\d+(?:\.\d+)?)/) || q.match(/\b(\d+(?:\.\d+)?)\s*pesos\b/);
-            if (moneyMatch && answerText.includes('En este caso los $40.00 de excedente')) {
-                const amount = parseFloat(moneyMatch[1]);
-                let action = '';
-                if (amount > 0) {
-                    action = `> 🧐 **Análisis de tu consulta:** Mencionas la cantidad de **$${amount.toFixed(2)}**.\n> \n> - Si esos $${amount.toFixed(2)} son dinero que te **sobró** (excedente de caja), **DEBES DEVOLVERLOS** al Área de Administración, ya que no hay un monto mínimo exento para devolver dinero sobrante de la empresa.\n> - En cambio, si tú hubieras **gastado de más** de tu propio bolsillo (saldo a favor), al ser una cantidad ${amount > 50 ? `**mayor a $50.00**, la empresa **SÍ** te la reembolsaría.` : `**menor o igual al umbral de $50.00**, la empresa **NO** te gestionaría reembolso.`}`;
-                }
-                answerText = `**Sí debe devolverlos (si es dinero que sobró).** Hay dos reglas en la política que aplican y no deben confundirse:\n\n1. Si el importe comprobado es menor al depositado (te sobró dinero de viáticos), dicho excedente **debe devolverse obligatoriamente** antes de los 2 días hábiles junto con la comprobación, sin importar lo pequeña que sea la cantidad.\n\n2. El reembolso a favor del viaticante (cuando tú gastas más de lo depositado) solo aplica y se paga cuando el saldo a favor es estrictamente **mayor a $50.00**.\n\n${action}`;
+            if (q.includes('devuelvo') || q.includes('sobró') || q.includes('sobro')) {
+                answerText = `**Sí debe devolverlos (si es dinero que sobró).** El excedente de viáticos debe devolverse obligatoriamente antes de los 2 días hábiles junto con la comprobación.`;
+            }
+
+            // Interceptar CDMX en FAQ para no mostrar tablas
+            if (q.includes('cdmx') || q.includes('méxico') || q.includes('mexico')) {
+                const monto = VIA_HOSPEDAJE['cdmx']?.[grupo] || 1400;
+                const montoAlimento = VIA_ALIMENTOS[grupo]?.[tipoNomina] || 200;
+                return {
+                    content: `📍 **Consulta de Viáticos (CDMX)**\n\n**Puesto:** ${puesto} (Grupo ${grupo}).\n\n**Monto Autorizado:** Te corresponde un máximo de **$${monto.toLocaleString('es-MX')}.00** por noche de hospedaje y **$${montoAlimento.toLocaleString('es-MX')}.00** por cada alimento.\n\n⚠️ **Nota:** En CDMX el importe puede modificarse de acuerdo con la zona del evento.`,
+                    source: `MOD-VIA-006 MANUAL_VIATICOS`
+                };
             }
 
             return {
-                content: `De acuerdo a la Política de Viáticos, referente a tu duda:\n\n💬 ${answerText}`,
+                content: `De acuerdo a la Política de Viáticos:\n\n💬 ${answerText}`,
                 source: `MOD-VIA-006 MANUAL_VIATICOS`
             };
         }
     }
 
-    const puesto = collaborator?.puesto || '';
-    const grupo = getGrupoVIA(puesto);
-    const tipoNomina = getTipoNomina(puesto);
-    const grupoLabel = { A: 'A — Promotor/Analista/Coordinador/Gerente de Sucursal', B: 'B — Gerente Regional/Subdirector/Director', C: 'C — Subdirección General/Dirección General/Consejo' };
-    const destino = detectDestino(q);
+    const alimentosMonto = VIA_ALIMENTOS[grupo]?.[tipoNomina] || 0;
+    const sugerencia = getSugerenciaDestino(origenRegion);
 
-    let respuestas = [];
-    let fuentes = new Set();
-
-    // ── HOSPEDAJE ─────────────────────────────────────────────────────────────
-    if (q.includes('hospedaje') || q.includes('hotel') || q.includes('alojamiento') || q.includes('noche')) {
-        fuentes.add(`MOD-VIA-006 MANUAL_VIATICOS — Anexo 1: Tabla de hospedaje`);
-        if (destino) {
-            const monto = VIA_HOSPEDAJE[destino]?.[grupo];
-            if (monto) {
-                respuestas.push(`**Hospedaje en ${destino.toUpperCase()}:** Tope de **$${monto.toLocaleString('es-MX')}.00 por noche**.`);
-            }
-        } else {
-            const filas = Object.entries(VIA_HOSPEDAJE)
-                .map(([ciudad, vals]) => `- **${ciudad.toUpperCase()}:** A: $${vals.A} | B: $${vals.B} | C: $${vals.C}`)
-                .join('\n');
-            respuestas.push(`**Topes de hospedaje por noche (MXN):**\n${filas}`);
-        }
-    }
-
-    // ── ALIMENTOS ─────────────────────────────────────────────────────────────
-    if (q.includes('alimento') || q.includes('comida') || q.includes('desayuno') || q.includes('cena') || q.includes('comer')) {
-        const monto = VIA_ALIMENTOS[grupo]?.[tipoNomina];
-        fuentes.add(`MOD-VIA-006 MANUAL_VIATICOS — Anexo 2: Tabla de alimentos`);
-        respuestas.push(`**Alimentos:** Tope de **$${monto}.00 por alimento** (desayuno, comida o cena). ${tipoNomina === 'EOG' ? 'Recuerda que para EOG no se requiere factura.' : ''}`);
-    }
-
-    // ── VIÁTICOS INTERNACIONALES ──────────────────────────────────────────────
-    if (q.includes('internacional') || q.includes('extranjero') || q.includes('usd') || q.includes('dólar')) {
-        fuentes.add(`MOD-VIA-006 MANUAL_VIATICOS — Viáticos Internacionales`);
-        respuestas.push(`**Viáticos internacionales:** **$${VIA_INTERNACIONAL.por_dia_usd} USD por día** para alimentación y transportes locales.\n*Nota:* ${VIA_INTERNACIONAL.nota}`);
-    }
-
-    // ── SOLICITUD ─────────────────────────────────────────────────────────────
-    if (q.includes('solicitar') || q.includes('pedir') || q.includes('anticipación') || q.includes('anticipo') || q.includes('solicitud')) {
-        fuentes.add(`MOD-VIA-006 MANUAL_VIATICOS — Políticas de solicitud`);
-        respuestas.push(`**Solicitud:** ${VIA_POLITICAS.anticipacion} Autoriza tu jefe inmediato por correo. \n${VIA_POLITICAS.transporte_aereo}`);
-    }
-
-    // ── COMPROBACIÓN ──────────────────────────────────────────────────────────
-    let adjuntarPlantilla = false;
-    if (q.includes('comprobar') || q.includes('comprobación') || q.includes('comprobacion') ||
-        q.includes('factura') || q.includes('ticket') || q.includes('comprobante') ||
-        q.includes('gasto') || q.includes('plantilla')) {
-        fuentes.add(`MOD-VIA-006 MANUAL_VIATICOS — Comprobación de viáticos`);
-        respuestas.push(`**Comprobación:** ${VIA_POLITICAS.comprobacion_plazo} Se requieren facturas PDF y XML.\n*Nota:* ${VIA_POLITICAS.gastos_no_validos}`);
-        adjuntarPlantilla = true;
-    }
-
-    // ── TRANSPORTE ────────────────────────────────────────────────────────────
-    if (q.includes('transporte') || q.includes('vuelo') || q.includes('avión') || q.includes('autobús') || q.includes('traslado')) {
-        fuentes.add(`MOD-VIA-006 MANUAL_VIATICOS — Transporte`);
-        respuestas.push(`**Transporte:** < 500 km terrestre obligatorio. > 500 km aplica avión con autorización. Clase: Económica/Turista.`);
-    }
-
-    // ── SI ENCONTRÓ TEMAS ─────────────────────────────────────────────────────
-    if (respuestas.length > 0) {
-        let content = `He revisado la Política de Viáticos aplicable a tu puesto (*${puesto || 'No especificado'}*, Grupo **${grupo}**, nómina **${tipoNomina}**):\n\n`;
-        content += respuestas.join('\n\n---\n\n');
-        content += '\n\n📝 *¿Deseas conocer detalles sobre algún otro concepto de viáticos?*';
-
-        const result = { content, source: Array.from(fuentes).join(' | ') };
-        if (adjuntarPlantilla) {
-            result.adjunto = {
-                nombre: 'Plantilla de Gastos.xlsm',
-                url: '/plantilla de gastos.xlsm',
-                descripcion: 'Formato oficial de comprobación de viáticos — Grupo CONSERVA',
-            };
-        }
-        return result;
-    }
-
-    // ── RESPUESTA GENERAL O RESUMEN POR DEFECTO ────────────────────────────────
-    const hospTuGrupo = Object.entries(VIA_HOSPEDAJE)
-        .map(([ciudad, vals]) => `- ${ciudad.toUpperCase()}: $${vals[grupo]}`)
-        .join('\n');
-    const alimentosMonto = VIA_ALIMENTOS[grupo]?.[tipoNomina];
+    // Solo mostrar sugerencias si NO se detectó ningún destino (ni siquiera uno desconocido)
+    const showSugerencia = !destinoData;
 
     return {
-        content: `He verificado la matriz de viáticos. Resumen para **Grupo ${grupo}** (**${tipoNomina}**):\n\n**Hospedaje por noche:**\n${hospTuGrupo}\n\n**Alimentos:** $${alimentosMonto}.00 (por comida)\n\n¿Quieres información sobre hospedaje en un lugar específico, avión, solicitud o comprobación?`,
+        content: `Módulo de Viáticos activo para **${puesto}**.\n\n- **Alimentos:** $${alimentosMonto.toLocaleString('es-MX')}.00 por comida.\n- **Hospedaje:** Personalizado según tu destino.\n- **Transporte:** Basado en distancia (< 500 km terrestre).\n\n¿A qué ciudad viajas? ${showSugerencia ? sugerencia : ''}`,
         source: `MOD-VIA-006 MANUAL_VIATICOS — Anexo 1 y 2`,
+    };
+}
+
+/** Sugiere ciudades destino excluyendo el origen. */
+function getSugerenciaDestino(origen) {
+    const ciudades = [
+        { key: 'chiapas', label: 'Chiapas' },
+        { key: 'tabasco', label: 'Tabasco' },
+        { key: 'merida', label: 'Mérida' },
+        { key: 'puebla', label: 'Puebla' },
+        { key: 'cdmx', label: 'CDMX' },
+        { key: 'estado de mexico', label: 'Edo México' }
+    ];
+
+
+    const filtradas = ciudades.filter(c => c.key !== origen).map(c => c.label);
+    if (filtradas.length === 0) return '';
+
+    const last = filtradas.pop();
+    const texto = filtradas.length > 0 ? `${filtradas.join(', ')} o ${last}` : last;
+    return `(Ej: ${texto})`;
+}
+
+// ─── MOD-SAN-007 ─────────────────────────────────────────────────────────────
+
+export async function handleSAN(query) {
+    const { SAN_DATA, buscarFolios, detectarFormatosRelevantes, TODOS_LOS_FORMATOS } = await import('../data/sanciones.js');
+    const q = (query || '').toLowerCase().trim();
+    
+    // ROL: Experto en Recursos Humanos
+    const introExperto = ""; // Eliminado por solicitud del usuario
+
+    // 0. Detectar si pide uno de los temas informativos (1-7)
+    const infoKey = Object.keys(SAN_DATA.info_temas).find(k => q.includes(k) || (q.length > 5 && k.includes(q)));
+    if (infoKey) {
+        const info = SAN_DATA.info_temas[infoKey];
+        return {
+            content: `<div class="contenedor-respuestas">
+                <details class="tarjeta-sancion" open>
+                    <summary>📍 ${info.titulo}</summary>
+                    <div class="contenido-sancion">
+                        ${info.contenido}
+                    </div>
+                </details>
+            </div>`,
+            source: SAN_DATA.fuente
+        };
+    }
+
+    // 1. Detectar si pide consulta de folios general
+    if (q.includes('folio') && (q.includes('consulta') || q.includes('detalle') || q.includes('ver'))) {
+         return {
+            content: `📍 **Consulta de Folios (1-65)**\n\nLa Matriz de Sanciones se divide en 65 folios técnicos. ¿Sobre cuál deseas consultar?\n\n- **LEVE:** Folios 1 al 4\n- **MODERADA:** Folios 5 al 52\n- **GRAVE:** Folios 53 al 65`,
+            source: SAN_DATA.fuente,
+            source: SAN_DATA.fuente
+        };
+    }
+
+    // 2. Detectar si pide niveles específicos
+    if (q.includes('leve')) {
+        let res = `🟢 **Nivel LEVE — Folios 1 al 4**\n\nConductas de bajo impacto. Selecciona un folio para ver el detalle:\n\n`;
+        SAN_DATA.nivel_leve.folios.forEach(f => {
+            res += `- **Folio ${f.folio}:** ${f.conducta.substring(0, 80)}...\n`;
+        });
+        return { content: res, source: SAN_DATA.fuente };
+    }
+    if (q.includes('grave')) {
+        let res = `🔴 **Nivel GRAVE — Folios 53 al 65**\n\nConductas de tolerancia cero. Selecciona un folio para ver el detalle:\n\n`;
+        SAN_DATA.nivel_grave.folios.forEach(f => {
+            res += `- **Folio ${f.folio}:** ${f.conducta.substring(0, 80)}...\n`;
+        });
+        return { content: res, source: SAN_DATA.fuente };
+    }
+    if (q.includes('moderado')) {
+        return {
+            content: `🟡 **Nivel MODERADO — Folios 5 al 52**\n\nAbarca negligencia operativa y bajo rendimiento. Indícame el número de folio o la conducta específica que deseas consultar (Ej: "Folio 10" o "bajo rendimiento").`,
+            source: SAN_DATA.fuente,
+            source: SAN_DATA.fuente
+        };
+    }
+
+    // 3. Detectar si pide folios específicos por número
+    const folioMatch = q.match(/folio\s*(\d+)/);
+    if (folioMatch) {
+        const num = parseInt(folioMatch[1], 10);
+        let folio = null;
+        let nivel = '';
+
+        if (num >= 1 && num <= 4) {
+            folio = SAN_DATA.nivel_leve.folios.find(f => f.folio === num);
+            nivel = 'LEVE';
+        } else if (num >= 5 && num <= 52) {
+            folio = SAN_DATA.nivel_moderado.folios_resumen.find(f => f.folio === num);
+            nivel = 'MODERADO';
+        } else if (num >= 53 && num <= 65) {
+            folio = SAN_DATA.nivel_grave.folios.find(f => f.folio === num);
+            nivel = 'GRAVE';
+        }
+
+        if (folio) {
+            let res = `<div class="contenedor-respuestas">
+                <details class="tarjeta-sancion" open>
+                    <summary>Folio ${num}: ${nivel}</summary>
+                    <div class="contenido-sancion">
+                        <ul>
+                            <li><b>Conducta:</b> ${folio.conducta}</li>
+                            <li><b>Nivel:</b> ${nivel}.</li>
+                            <li><b>Instancia Facultada:</b> ${nivel === 'GRAVE' ? SAN_DATA.nivel_grave.instancia : (nivel === 'LEVE' ? 'Líder inmediato / Enlace Talento' : 'Enlace Talento / Enlace Jurídico')}</li>
+                            <li><b>Acción Correctiva:</b> ${nivel === 'GRAVE' ? SAN_DATA.nivel_grave.accion : (nivel === 'LEVE' ? 'Llamados progresivos hasta acta' : 'Llamado escrito / Plan de Mejora / Acta')}</li>
+                            <li><b>Salida Económica:</b> ${folio.salida_economica || SAN_DATA.nivel_grave.salida_economica || 'Considerar tabulador por antigüedad'}</li>
+                        </ul>`;
+            
+            const formats = detectarFormatosRelevantes(folio.conducta);
+            if (formats.length > 0) {
+                formats.forEach(f => {
+                    res += `<a href="${f.url}" class="btn-descarga">📄 Descargar ${f.nombre}</a>`;
+                });
+            }
+
+            res += `</div>
+                </details>
+            </div>`;
+
+            return { content: res, source: SAN_DATA.fuente };
+        }
+    }
+
+    // 4. Búsqueda semántica (Manejo de Ambigüedad)
+    const resultados = buscarFolios(q);
+    if (resultados.length > 0 && q.length > 4) {
+        let res = `<div class="contenedor-respuestas">`;
+        
+        resultados.forEach((f, index) => {
+            const n = f.nivel || (f.folio <= 4 ? 'LEVE' : (f.folio <= 52 ? 'MODERADO' : 'GRAVE'));
+            res += `
+            <details class="tarjeta-sancion">
+                <summary>${index + 1}. ${f.conducta.substring(0, 60)}... (Folio ${f.folio})</summary>
+                <div class="contenido-sancion">
+                    <ul>
+                        <li><b>Conducta:</b> ${f.conducta}</li>
+                        <li><b>Nivel:</b> ${n}.</li>
+                        <li><b>Instancia Facultada:</b> ${n === 'GRAVE' ? SAN_DATA.nivel_grave.instancia : (n === 'LEVE' ? 'Líder inmediato / Enlace Talento' : 'Enlace Talento / Enlace Jurídico')}</li>
+                        <li><b>Acción Correctiva:</b> ${n === 'GRAVE' ? SAN_DATA.nivel_grave.accion : (n === 'LEVE' ? 'Llamados progresivos hasta acta' : 'Llamado escrito / Plan de Mejora / Acta')}</li>
+                        <li><b>Salida Económica:</b> ${f.salida_economica || SAN_DATA.nivel_grave.salida_economica || 'Considerar tabulador por antigüedad'}</li>
+                    </ul>`;
+            
+            const formats = detectarFormatosRelevantes(f.conducta);
+            if (formats.length > 0) {
+                formats.forEach(formato => {
+                    res += `<a href="${formato.url}" class="btn-descarga">📄 Descargar ${formato.nombre}</a>`;
+                });
+            }
+            
+            res += `</div>
+            </details>`;
+        });
+
+        res += `</div>`;
+        return { content: res, source: SAN_DATA.fuente };
+    }
+
+    // 5. Formatos Directos
+    if (q.includes('formato') || q.includes('documento') || q.includes('descargar')) {
+        let res = `Aquí tienes los formatos institucionales para descarga:<br><br>`;
+        TODOS_LOS_FORMATOS.forEach(f => {
+            res += `<a href="${f.url}" class="btn-descarga">📄 Descargar ${f.nombre}</a>`;
+        });
+        return { content: res, source: SAN_DATA.fuente };
+    }
+
+    // 6. Prompt inicial / Menú (Fallback si no hay coincidencia)
+    return {
+        content: `Módulo **Matriz de Sanciones (SAN)** activo. ¿Sobre qué tema deseas información?`,
+        source: SAN_DATA.fuente
     };
 }
