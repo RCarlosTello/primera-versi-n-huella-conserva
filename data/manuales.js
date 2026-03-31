@@ -81,6 +81,112 @@ export const VIA_DISTANCIAS = {
     edomex: { merida: 1350, tabasco: 810, chiapas: 860, puebla: 180, cdmx: 65 },
 };
 
+/**
+ * Distancias aproximadas (km) entre ciudades clave de la red CONSERVA.
+ * Usado para determinar: si aplican alimentos, si aplica vuelo, si es viaje local.
+ * Reglas del manual:
+ *  - < 50 km:  no aplican alimentos (viaje local de ida y vuelta)
+ *  - > 500 km: se puede solicitar vuelo (requiere 15 días hábiles anticipación)
+ */
+export const VIA_KM_CIUDADES = {
+    // origen_destino en formato "ciudad1|ciudad2" (siempre min→max alfabético)
+    // Tabasco ↔ Tabasco
+    'villahermosa|cardenas':        57,
+    'villahermosa|cunduacan':       65,
+    'villahermosa|teapa':           68,
+    'villahermosa|huimanguillo':    112,
+    'villahermosa|emiliano zapata': 127,
+    // Tabasco ↔ Chiapas
+    'villahermosa|bochil':          195,
+    'villahermosa|chiapa de corzo': 250,
+    'villahermosa|tuxtla gutierrez':260,
+    'villahermosa|comitan':         370,
+    'villahermosa|tapachula':       520,
+    'villahermosa|cintalapa':       310,
+    'villahermosa|villaflores':     310,
+    'villahermosa|tonala':          340,
+    'cardenas|bochil':              280,
+    'cardenas|tuxtla gutierrez':    290,
+    // Tabasco ↔ Yucatán
+    'villahermosa|merida':          590,
+    'cardenas|merida':              640,
+    // Tabasco ↔ Puebla / CDMX
+    'villahermosa|puebla':          680,
+    'villahermosa|cdmx':            760,
+    'villahermosa|cholula':         690,
+    'villahermosa|toluca':          800,
+    // Chiapas ↔ Chiapas
+    'tuxtla gutierrez|bochil':      90,
+    'tuxtla gutierrez|chiapa de corzo': 15,
+    'tuxtla gutierrez|comitan':     150,
+    'tuxtla gutierrez|tapachula':   285,
+    'tuxtla gutierrez|cintalapa':   95,
+    'tuxtla gutierrez|villaflores': 94,
+    'tuxtla gutierrez|tonala':      135,
+    'tapachula|comitan':            320,
+    'tapachula|bochil':             340,
+    // Chiapas ↔ Yucatán
+    'tuxtla gutierrez|merida':      870,
+    'tapachula|merida':             1100,
+    // Chiapas ↔ Puebla / CDMX
+    'tuxtla gutierrez|puebla':      735,
+    'tuxtla gutierrez|cdmx':        840,
+    'tapachula|cdmx':               1040,
+    'tapachula|puebla':             940,
+    // Yucatán ↔ Puebla / CDMX
+    'merida|puebla':                1150,
+    'merida|cdmx':                  1300,
+    'merida|cholula':               1160,
+    'merida|campeche':              160,
+    // Puebla ↔ CDMX
+    'cdmx|puebla':                  130,
+    'cdmx|cholula':                 140,
+    'cdmx|toluca':                  65,
+    'cholula|puebla':               10,
+};
+
+/**
+ * Obtiene km entre dos ciudades (normaliza nombre y busca en ambas direcciones).
+ * @param {string} origen - ciudad origen (ej: "Villahermosa")
+ * @param {string} destino - ciudad destino (ej: "Mérida")
+ * @returns {number|null} km aproximados o null si no está en tabla
+ */
+export function getDistanciaKm(origen, destino) {
+    function n(s) {
+        return (s || '').toLowerCase()
+            .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+            .replace(/[^\w\s]/g,' ').trim();
+    }
+    const o = n(origen), d = n(destino);
+    if (o === d) return 0;
+    const key1 = `${o}|${d}`;
+    const key2 = `${d}|${o}`;
+    return VIA_KM_CIUDADES[key1] ?? VIA_KM_CIUDADES[key2] ?? null;
+}
+
+/**
+ * Determina si aplican viáticos según origen/destino.
+ * @returns {object} { aplica, motivo, vuelo, km }
+ */
+export function evaluarViaticos(ciudadOrigen, ciudadDestino) {
+    const km = getDistanciaKm(ciudadOrigen, ciudadDestino);
+    if (km === 0 || ciudadOrigen.toLowerCase() === ciudadDestino.toLowerCase()) {
+        return { aplica: false, motivo: 'misma_ciudad', km: 0,
+            mensaje: '⚠️ El destino es la misma ciudad de origen. No aplican viáticos según la política de CONSERVA.' };
+    }
+    if (km !== null && km < 50) {
+        return { aplica: false, motivo: 'distancia_corta', km,
+            mensaje: `⚠️ La distancia es de aproximadamente ${km} km. Por ser viaje de ida y vuelta el mismo día (< 50 km), no aplican alimentos según política.` };
+    }
+    if (km !== null && km > 500) {
+        return { aplica: true, motivo: 'vuelo_posible', km, vuelo: true,
+            mensaje: `✅ Distancia aproximada: **${km} km**. Aplican viáticos completos y puedes solicitar **vuelo** (con 15 días hábiles de anticipación).` };
+    }
+    return { aplica: true, motivo: 'terrestre', km,
+        mensaje: km ? `✅ Distancia aproximada: **${km} km**. Aplican viáticos. Transporte terrestre recomendado.` : '✅ Aplican viáticos para este destino.' };
+}
+
+
 /** Mapeo de ubicación (sucursal/área) a región base. */
 export const VIA_UBICACION_MAP = {
     'merida': 'merida', 'mérida': 'merida', 'yucatán': 'merida', 'yucatan': 'merida',
@@ -100,7 +206,7 @@ export const MAN_DATA = {
         nombre: 'Manual de Crédito Mujeres de Palabra / Crédito Solidario',
         descripcion: 'Crédito grupal diseñado para mujeres con actividad productiva. Fomenta el crecimiento mutuo mediante la responsabilidad solidaria.',
         fuente: 'MAN-SOL Manual de Crédito Mujeres de Palabra — Catálogo de Producto',
-        temas: ['Montos', 'Plazos', 'Tasas e intereses', 'Integrantes del grupo', 'Requisitos', 'Garantías', 'Bonificación', 'Seguro de vida', 'Cobranza y mora'],
+        temas: ['Montos mínimo y máximo', 'Plazos disponibles (16/20/24 sem)', 'Tasas e intereses', 'Bonificación por pago puntual', 'Integrantes del grupo (mín/máx)', 'Requisitos de ingreso', 'Garantía líquida (10%)', 'Seguro de vida ($10.25/sem)', 'Cobranza y mora (DDA)', 'Renovación de crédito', 'Reestructura e individualización', 'CAT y costo total', 'Comités y autorizaciones (COCS)'],
         montos: {
             min: 4000,
             min_cintalapa: 3000,
@@ -164,7 +270,7 @@ export const MAN_DATA = {
         nombre: 'Manual de Crédito Conserva T Activa',
         descripcion: 'Crédito solidario para grupos pequeños (2-5 integrantes). Ideal para impulsar negocios mediante el apoyo conjunto de manera ágil.',
         fuente: 'MAN-TAC Manual de Crédito T Activa — Catálogo de Producto',
-        temas: ['Montos', 'Plazos', 'Tasas e intereses', 'Integrantes del grupo', 'Requisitos', 'Garantías', 'Bonificación', 'Seguro'],
+        temas: ['Montos mínimo y máximo', 'Plazos y periodicidad de pago', 'Tasas (4.5% mensual)', 'Bonificación (0.5% desde 1er ciclo)', 'Integrantes del grupo (2-5)', 'Requisitos personales y de negocio', 'Garantía líquida', 'Seguro de vida ($13.00/sem)', 'Renovación y reingreso', 'Semaforización y riesgo de cartera', 'Tasa preferencial (requisitos)'],
         montos: {
             min: 10000,
             max: 80000,
@@ -198,7 +304,7 @@ export const MAN_DATA = {
         nombre: 'Manual de Crédito Individual (Tu Negocio con CONSERVA)',
         descripcion: 'Financiamiento directo para personas con actividades productivas comprobables, orientado al crecimiento y mejora de negocios en marcha.',
         fuente: 'MAN-IND Manual de Crédito Individual — Catálogo de Producto',
-        temas: ['Montos', 'Plazos', 'Tasas e intereses', 'Requisitos', 'Garantías', 'Seguro de vida', 'Cobranza'],
+        temas: ['Montos ($50k-$500k)', 'Plazos (4 a 24 meses)', 'Tasas (7.29% mensual)', 'Requisitos del negocio (12 meses)', 'Garantías (prendaria/aval)', 'Seguro de vida', 'Cobranza y gestión de mora', 'Desembolso y entrega de recursos', 'Renovación y graduación', 'Verificación ocular', 'Mesa de Control (MC)'],
         montos: {
             min: 50000,
             max: 500000,

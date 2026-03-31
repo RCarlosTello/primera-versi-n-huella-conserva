@@ -3,7 +3,17 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Seguridad: evitar clickjacking y XSS básico -->
+  <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+  <meta http-equiv="X-Frame-Options" content="DENY" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <!-- PWA: color de barra en Android -->
+  <meta name="theme-color" content="#0d2818" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Huella" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
   <meta name="description"
     content="Huella Conserva Asistente Institucional — Ecosistema digital oficial de información normativa de Grupo CONSERVA." />
   <title>Huella Conserva — Asistente Institucional v1.2</title>
@@ -25,8 +35,19 @@
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js')
-          .then(reg => console.log('PWA Service Worker Registrado:', reg.scope))
-          .catch(err => console.warn('PWA Service Worker Falló:', err));
+          .then(reg => {
+            // Detectar actualización disponible
+            reg.addEventListener('updatefound', () => {
+              const newWorker = reg.installing;
+              newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  // Hay actualización disponible — notificar silenciosamente
+                  console.info('[PWA] Actualización disponible. Recarga para aplicar.');
+                }
+              });
+            });
+          })
+          .catch(err => console.warn('[PWA] Service Worker falló:', err));
       });
     }
   </script>
@@ -252,10 +273,24 @@
 
   <!-- Pantalla de Login Modernizada (Producción) -->
   <div id="login-screen">
-    <div class="bg-shape one"></div>
-    <div class="bg-shape two"></div>
+    <div class="login-deco-lines"></div>
+    <div class="login-deco-mid"></div>
+    <div class="login-watermark">CONSERVA</div>
 
     <main class="w-full h-full flex items-center justify-center p-4 sm:p-6">
+      <!-- Lado izquierdo — solo visible en desktop grande -->
+      <div class="login-brand-side">
+        <div style="font-family:'Cinzel',serif;font-size:2.8rem;font-weight:700;color:#0d2818;line-height:1.1;">HUELLA<br><span style="color:#1a5e35;">CONSERVA</span></div>
+        <p style="margin-top:1rem;font-size:1rem;color:#2d6a4f;line-height:1.6;">Ecosistema digital de<br>información institucional</p>
+        <div style="margin-top:2rem;display:flex;flex-direction:column;gap:10px;">
+          <div style="display:flex;align-items:center;gap:10px;font-size:0.85rem;color:#445040;"><span style="font-size:1.1rem;">📚</span> Manuales institucionales</div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:0.85rem;color:#445040;"><span style="font-size:1.1rem;">✈️</span> Política de viáticos</div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:0.85rem;color:#445040;"><span style="font-size:1.1rem;">💰</span> Manual de caja chica</div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:0.85rem;color:#445040;"><span style="font-size:1.1rem;">⚖️</span> Matriz de sanciones</div>
+        </div>
+        <div style="margin-top:2.5rem;padding-top:1.5rem;border-top:1px solid rgba(45,138,80,0.2);font-size:0.75rem;color:#68a07a;">v1.2 · 2026 · Grupo CONSERVA</div>
+      </div>
+
       <section class="panel mobile-full w-full max-w-lg rounded-[2.5rem] border border-white/60 bg-white/95 overflow-hidden">
         <div>
           <div class="flex flex-col justify-center p-8 sm:p-12">
@@ -330,6 +365,8 @@
   <div id="app-shell" style="display: none;">
 
     <!-- Sidebar / Branding -->
+    <!-- Overlay for mobile sidebar -->
+    <div id="sidebar-overlay"></div>
     <aside id="sidebar">
       <div id="brand-block">
         <img id="sidebar-logo" src="logohuella.jpeg" alt="Huella" />
@@ -432,7 +469,9 @@
         <!-- Row 2: Module Ribbon -->
         <div class="header-bottom-row">
           <div id="module-ribbon-top" class="ms ms--header">
+            <button id="ribbon-scroll-left-top" class="ribbon-arrow-top ribbon-arrow-left" aria-label="Ver módulos anteriores" style="display:none;">&#10094;</button>
             <div class="ms-row" id="ribbon-row-top"></div>
+            <button id="ribbon-scroll-right-top" class="ribbon-arrow-top ribbon-arrow-right" aria-label="Ver más módulos">&#10095;</button>
           </div>
         </div>
       </header>

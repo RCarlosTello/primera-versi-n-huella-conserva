@@ -124,7 +124,8 @@ export const FAQS = {
       "q": "¿Para montos mayores a $2,000.00, puede realizarse el pago en efectivo con Caja Chica?",
       "a": "No. Para montos mayores a $2,000.00, la operación deberá realizarse por transferencia, pago con tarjeta de crédito, débito o cheque nominativo."
     }
-  ],
+  ,
+    {"q": "¿Cuántos vales o comprobantes sin factura se pueden usar al mes en caja chica?", "a": "Solo se podrán comprobar 5 gastos al mes con vale azul que no excedan de $100.00 cada uno. En caso de gastos de emergencia que excedan este importe de proveedores que no facturen, deberá venir con el visto bueno de la Dirección correspondiente."}],
   "MAN_TAC": [
     {
       "q": "¿Cuál es el monto mínimo y el monto máximo del crédito Conserva T-Activa?",
@@ -214,7 +215,28 @@ export const FAQS = {
       "q": "¿Qué pasa con una solicitud que la Mesa de Control califica como \"Revisada Devuelta\" y no se corrige satisfactoriamente en la segunda revisión?",
       "a": "Si la solicitud es devuelta para corrección y en la segunda revisión vuelve a presentar fallas o estas no pueden subsanarse, la solicitud deberá **suspenderse durante un período de 6 meses**. La corrección solo puede realizarse en **una oportunidad**.\n\nLo mismo aplica si después de someter a reconsideración la nota sigue siendo de \"No Recomendada\": quedará **bloqueada para nuevo análisis por seis meses**."
     }
-  ],
+  ,
+    {
+      "q": "¿Cuál es el monto mínimo y máximo del crédito Conserva T Activa?",
+      "a": "Monto mínimo: $10,000.00. Monto máximo: $80,000.00 por cliente individual."
+    },
+    {
+      "q": "¿Cuál es la tasa mensual del crédito Conserva T Activa?",
+      "a": "Tasa Global mensual: 4.5%. Tasa insoluta anual con IVA: 91%. CAT promedio anual sin IVA: 165.1%."
+    },
+    {
+      "q": "¿Cuánto cuesta el seguro de vida en Conserva T Activa?",
+      "a": "La cuota semanal individual con IVA es de $13.00 por cliente. La suma asegurada es de $35,000.00. Edad de aceptación: de 20 a 89 años cumplidos."
+    },
+    {
+      "q": "¿Cuál es la edad para solicitar el crédito Conserva T Activa?",
+      "a": "La edad mínima es de 20 años y la máxima es de 74 años 11 meses. El titular debe tener una actividad productiva lícita."
+    },
+    {
+      "q": "¿Cuántos integrantes mínimo necesita un grupo T Activa?",
+      "a": "El mínimo es de 3 integrantes para poder conformar un grupo T Activa y acceder a la bonificación por pago puntual."
+    },
+    {"q": "¿Cuántos integrantes mínimo necesita un grupo Conserva T Activa para operar?", "a": "El mínimo es de 2 a 3 personas. Para la bonificación por pago puntual se requieren grupos de 3 integrantes en adelante. Pueden ser hombres y/o mujeres mayores de 20 años con actividad productiva."}],
   "MAN_PAR": [
     {
       "q": "¿Cómo se denomina oficialmente este producto?",
@@ -332,103 +354,126 @@ export const FAQS = {
       "q": "¿Cómo se calcula la prima del seguro de vida en el Crédito Paralelo?",
       "a": "La cuota total por concepto de prima del seguro se calculará con base en el número de semanas que dura el contrato de crédito. La colocación del seguro será con pago de contado de su cuota correspondiente, con una cuota de $10.25 por semana por cliente (con IVA). La vigencia del seguro cubrirá la misma vigencia que la del contrato del crédito paralelo."
     }
-  ],
+  ,
+    {
+      "q": "¿Cuál es el monto mínimo y máximo del crédito Paralelo de CONSERVA?",
+      "a": "Los límites van desde $1,000.00 hasta $30,000.00. El monto máximo del primer crédito paralelo es hasta $20,000.00, dependiendo del análisis de capacidad de pago."
+    },
+    {
+      "q": "¿Tiene bonificación el crédito paralelo de CONSERVA?",
+      "a": "No. Este producto no ofrece bonificación por pago puntual ni aplican beneficios no financieros por fidelización."
+    },
+    {
+      "q": "¿Cuántos ciclos de antigüedad necesita el grupo para acceder al crédito paralelo?",
+      "a": "El grupo Mujeres de Palabra debe tener al menos 4 ciclos de antigüedad y sus integrantes deben tener un excelente comportamiento de pago."
+    },
+    {
+      "q": "¿Cuántos días de atraso se permiten para solicitar el crédito paralelo?",
+      "a": "Cero días de atraso. El cliente no debe presentar ningún día de mora en su crédito Mujeres de Palabra vigente para ser elegible."
+    },
+    {
+      "q": "¿Cuál es el CAT del crédito paralelo de CONSERVA?",
+      "a": "252.7% sin IVA, para fines informativos y de comparación. Ejemplo calculado sobre un crédito de $6,000.00 a 8 semanas."
+    },
+    {"q": "¿Cuál es el monto mínimo y máximo del crédito paralelo de CONSERVA?", "a": "Los límites generales van desde $1,000.00 hasta $30,000.00. El monto máximo del primer crédito paralelo es hasta $20,000.00. El incremento en ciclos siguientes depende del análisis de capacidad de pago."},
+    {"q": "¿Cuántos días de atraso puede tener un cliente para solicitar el crédito paralelo?", "a": "Cero días de atraso. El cliente debe presentar cero días de mora en su crédito Mujeres de Palabra vigente. Además, el grupo no debe presentar mora interna."},
+    {"q": "¿Cuál es el CAT del crédito paralelo de CONSERVA?", "a": "252.7% sin IVA, para fines informativos y de comparación. Ejemplo calculado sobre un crédito de $6,000.00 a 8 semanas. La tasa mensual es de 3.913%."}],
   "MAN_IND": [
     {
       "q": "¿A quién va dirigido el producto \"Tu Negocio con CONSERVA\"?",
-      "a": "\"Personas físicas con un negocio o actividad productiva comercial o de servicios lícita y comprobable, con una antigüedad de 12 meses en funcionamiento.\""
+      "a": "Personas físicas con un negocio o actividad productiva comercial o de servicios lícita y comprobable, con una antigüedad de 12 meses en funcionamiento."
     },
     {
       "q": "¿Cuál es el rango de montos que se pueden solicitar en este crédito?",
-      "a": "\"Desde $50,000.00 hasta $500,000.00.\""
+      "a": "Desde $50,000.00 hasta $500,000.00."
     },
     {
       "q": "¿Cuáles son las opciones de periodicidad de pago?",
-      "a": "\"Semanal, Quincenal y/o Mensual.\""
+      "a": "Semanal, Quincenal y/o Mensual."
     },
     {
       "q": "¿Cuántos préstamos simultáneos puede tener un cliente con CONSERVA?",
-      "a": "\"Uno. El número máximo de créditos vigentes por solicitante con CONSERVA es uno.\""
+      "a": "Uno. El número máximo de créditos vigentes por solicitante con CONSERVA es uno."
     },
     {
       "q": "¿Qué documento de identificación se prefiere para iniciar el trámite?",
-      "a": "\"Preferentemente, copia simple de la credencial previamente cotejada con la original, emitida por el Instituto Nacional Electoral (INE, antes IFE).\""
+      "a": "Preferentemente, copia simple de la credencial previamente cotejada con la original, emitida por el Instituto Nacional Electoral (INE, antes IFE)."
     },
     {
       "q": "¿Cuál es la edad mínima y máxima para que el seguro de vida sea aceptado?",
-      "a": "\"Las edades de aceptación son de 24 a 89 años cumplidos.\""
+      "a": "Las edades de aceptación son de 24 a 89 años cumplidos."
     },
     {
       "q": "¿Qué pasa con el seguro de vida si el cliente liquida su crédito anticipadamente?",
-      "a": "\"De liquidarse un préstamo de forma anticipada, no se cancelará el seguro, continuando su cobertura hasta la fecha de término señalada en el contrato de crédito.\""
+      "a": "De liquidarse un préstamo de forma anticipada, no se cancelará el seguro, continuando su cobertura hasta la fecha de término señalada en el contrato de crédito."
     },
     {
       "q": "¿En qué horario pueden realizarse las dispersiones de recursos (desembolsos) de lunes a viernes?",
-      "a": "\"De lunes a viernes de 8:00 a.m. a 5:00 p.m.\""
+      "a": "De lunes a viernes de 8:00 a.m. a 5:00 p.m."
     },
     {
       "q": "¿Qué tipo de negocios quedan excluidos del producto?",
-      "a": "\"Establecimientos con consumo de bebidas alcohólicas; cualquier negocio ilícito.\""
+      "a": "Establecimientos con consumo de bebidas alcohólicas; cualquier negocio ilícito."
     },
     {
       "q": "¿Cuánto tiempo debe tener operando el negocio del solicitante para ser sujeto de crédito?",
-      "a": "\"El solicitante debe tener mínimo 1 año de operación en el negocio.\""
+      "a": "El solicitante debe tener mínimo 1 año de operación en el negocio."
     },
     {
       "q": "¿Cuál es la tasa global mensual para créditos de $50,000 a $100,000?",
-      "a": "\"De $50,000 a $100,000.00 = 7.29% mensual.\""
+      "a": "De $50,000 a $100,000.00 = 7.29% mensual."
     },
     {
       "q": "¿Cuál es la tasa moratoria aplicable en caso de incumplimiento?",
-      "a": "\"La cantidad resultante de multiplicar la tasa ordinaria x 2.\""
+      "a": "La cantidad resultante de multiplicar la tasa ordinaria x 2."
     },
     {
       "q": "¿Cuál es la relación mínima que debe cumplir toda garantía prendaria respecto al monto solicitado?",
-      "a": "\"Toda garantía prendaria deberá cubrir la relación 1 a 1.5 sobre el monto solicitado.\""
+      "a": "Toda garantía prendaria deberá cubrir la relación 1 a 1.5 sobre el monto solicitado."
     },
     {
       "q": "¿Puede el ENCI recibir dinero en efectivo de los clientes?",
-      "a": "\"El ENCI tiene estrictamente prohibido cobrar o recibir dinero en efectivo de nuestros clientes.\""
+      "a": "El ENCI tiene estrictamente prohibido cobrar o recibir dinero en efectivo de nuestros clientes."
     },
     {
       "q": "¿Quiénes son las únicas personas facultadas para realizar desembolsos de Crédito Individual?",
-      "a": "\"El Gerente de Crédito Individual, o el Coordinador de CI, las Auxiliares de CI, y los ENCI's Senior. Los ENCI´s Jr. no contarán con la facultad de realizar desembolsos.\""
+      "a": "El Gerente de Crédito Individual, o el Coordinador de CI, las Auxiliares de CI, y los ENCI's Senior. Los ENCI´s Jr. no contarán con la facultad de realizar desembolsos."
     },
     {
       "q": "¿Cuánto tiempo tiene el Gerente de CI para liberar en sistema la bonificación tras la liquidación de un crédito?",
-      "a": "\"El gerente de Crédito Individual tendrá 5 días para liberar en sistema dicha bonificación.\""
+      "a": "El gerente de Crédito Individual tendrá 5 días para liberar en sistema dicha bonificación."
     },
     {
       "q": "¿Cuánto tiempo tiene vigencia una Recomendación Positiva emitida por la Mesa de Control?",
-      "a": "\"El periodo de vigencia de una Recomendación positiva (aprobada) emitida por parte de la Mesa de Control será de tres días hábiles.\""
+      "a": "El periodo de vigencia de una Recomendación positiva (aprobada) emitida por parte de la Mesa de Control será de tres días hábiles."
     },
     {
       "q": "¿A qué instancia se turna un expediente cuando la morosidad alcanza entre 61 y 89 días?",
-      "a": "\"Turna el expediente del cliente a la Unidad de Cobranza Especializada de la Dirección Jurídica para su recuperación.\""
+      "a": "Turna el expediente del cliente a la Unidad de Cobranza Especializada de la Dirección Jurídica para su recuperación."
     },
     {
       "q": "¿Puede el personal de CONSERVA ser designado como beneficiario del seguro de vida de un cliente?",
-      "a": "\"Queda prohibido que personal de CONSERVA sea designado como beneficiario del seguro.\""
+      "a": "Queda prohibido que personal de CONSERVA sea designado como beneficiario del seguro."
     },
     {
       "q": "¿Cuál es la antigüedad mínima de residencia que debe tener el solicitante?",
-      "a": "\"Antigüedad mínima de residencia: 24 meses.\""
+      "a": "Antigüedad mínima de residencia: 24 meses."
     },
     {
       "q": "¿Bajo qué condición puede un cliente con 0 días de atraso y al menos 3 ciclos pagados acceder a una renovación inmediata basándose en la evaluación anterior?",
-      "a": "\"Exclusivamente dirigida a clientes con 0 días de atraso, al menos 3 ciclos o 12 meses ininterrumpidos pagados en tiempo y forma, sin liquidaciones anticipadas, el ENCI se podrá basar en la anterior evaluación de negocio, siempre y cuando esta tenga un máximo 6 meses de haber sido realizada por el mismo ENCI.\""
+      "a": "Exclusivamente dirigida a clientes con 0 días de atraso, al menos 3 ciclos o 12 meses ininterrumpidos pagados en tiempo y forma, sin liquidaciones anticipadas, el ENCI se podrá basar en la anterior evaluación de negocio, siempre y cuando esta tenga un máximo 6 meses de haber sido realizada por el mismo ENCI."
     },
     {
       "q": "¿Qué ocurre con la solicitud de crédito si las referencias vecinales tomadas en campo resultan negativas?",
-      "a": "\"Recabar por lo menos 2 referencias vecinales con negocios o vecinos alrededor de la zona (no más de 200 metros), las cuales deben ser positivas; de salir negativas las referencias tomadas en campo, la solicitud no podrá ser viable.\""
+      "a": "Recabar por lo menos 2 referencias vecinales con negocios o vecinos alrededor de la zona (no más de 200 metros), las cuales deben ser positivas; de salir negativas las referencias tomadas en campo, la solicitud no podrá ser viable."
     },
     {
       "q": "¿Puede otorgarse un crédito Individual únicamente con Garantía Líquida?",
-      "a": "\"Ningún Crédito Individual podrá ser presentado, autorizado o desembolsado solo con Garantía Líquida, esta se solicita como complemento al riesgo crediticio que represente una operación para medir voluntad y capacidad de pago.\""
+      "a": "Ningún Crédito Individual podrá ser presentado, autorizado o desembolsado solo con Garantía Líquida, esta se solicita como complemento al riesgo crediticio que represente una operación para medir voluntad y capacidad de pago."
     },
     {
       "q": "¿Cuál es la capacidad máxima de pago que puede comprometerse con la amortización del crédito?",
-      "a": "\"La relación amortización del crédito / capacidad de pago deberá ser al 50% como máximo.\""
+      "a": "La relación amortización del crédito / capacidad de pago deberá ser al 50% como máximo."
     },
     {
       "q": "¿Puede el destino del crédito ser la compra de mercancía (capital de trabajo) con un plazo de 12 meses?",
@@ -436,45 +481,83 @@ export const FAQS = {
     },
     {
       "q": "¿Cuántos días hábiles tiene como máximo el área de Cartera para finiquitar el pago de una indemnización de seguro?",
-      "a": "\"Toda indemnización de seguros deberá quedar finiquitada en un máximo de 10 días hábiles una vez que se haya verificado y concluido la recepción de documentos por el área de Cartera.\""
+      "a": "Toda indemnización de seguros deberá quedar finiquitada en un máximo de 10 días hábiles una vez que se haya verificado y concluido la recepción de documentos por el área de Cartera."
     },
     {
       "q": "¿Qué sucede con una solicitud rechazada por el Comité de Crédito? ¿Puede volver a presentarse?",
-      "a": "\"Para el caso de solicitudes rechazadas, no podrán ser presentadas nuevamente al comité de crédito por un lapso de 6 meses.\""
+      "a": "Para el caso de solicitudes rechazadas, no podrán ser presentadas nuevamente al comité de crédito por un lapso de 6 meses."
     },
     {
       "q": "¿Qué condiciones deben cumplirse para que un cliente proveniente del crédito grupal (\"Mujeres de Palabra\") pueda ingresar a Crédito Individual?",
-      "a": "\"Los solicitantes deberán de cumplir en primera instancia con el perfil definido de Crédito Individual y no tener créditos activos en CONSERVA; deberá ser un cliente referido exclusivamente por el gerente de crédito grupal vía correo electrónico realizando la mención sobre porqué el cliente no puede continuar con créditos grupales en CONSERVA. Nota: No hay excepciones.\""
+      "a": "Los solicitantes deberán de cumplir en primera instancia con el perfil definido de Crédito Individual y no tener créditos activos en CONSERVA; deberá ser un cliente referido exclusivamente por el gerente de crédito grupal vía correo electrónico realizando la mención sobre porqué el cliente no puede continuar con créditos grupales en CONSERVA. Nota: No hay excepciones."
     },
     {
       "q": "¿Qué factores hacen que un negocio NO sea elegible para Crédito Individual, independientemente de sus finanzas?",
-      "a": "\"Por política de CONSERVA no son elegibles para Crédito Individual cualquier tipo de negocio sin arraigo: Ambulantes, ventas por catálogo. Queda restringida la promoción del crédito a personas que carezcan de Avales apropiados, o de las Garantías Prendarias requeridas.\""
+      "a": "Por política de CONSERVA no son elegibles para Crédito Individual cualquier tipo de negocio sin arraigo: Ambulantes, ventas por catálogo. Queda restringida la promoción del crédito a personas que carezcan de Avales apropiados, o de las Garantías Prendarias requeridas."
     },
     {
       "q": "¿Cuál es el proceso que debe seguirse cuando fallece un cliente y el beneficiario acude a reclamar el seguro?",
-      "a": "\"El Beneficiario deberá presentarse a reclamar el seguro de vida, y será la Auxiliar administrativa de la sucursal quien integre el expediente de identificación del Beneficiario. Deberá solicitarse al beneficiario: Original del Acta de Defunción, copias simples cotejadas de identificación oficial, CURP, comprobante de domicilio, acta de nacimiento del cliente fallecido, identificación oficial del cliente fallecido, certificado firmado con declaración de Beneficiarios, y documento que acredite vínculo familiar cuando aplique.\""
+      "a": "El Beneficiario deberá presentarse a reclamar el seguro de vida, y será la Auxiliar administrativa de la sucursal quien integre el expediente de identificación del Beneficiario. Deberá solicitarse al beneficiario: Original del Acta de Defunción, copias simples cotejadas de identificación oficial, CURP, comprobante de domicilio, acta de nacimiento del cliente fallecido, identificación oficial del cliente fallecido, certificado firmado con declaración de Beneficiarios, y documento que acredite vínculo familiar cuando aplique."
     },
     {
       "q": "¿Bajo qué circunstancias puede modificarse este Manual antes de su revisión anual?",
-      "a": "\"Cambios en la normatividad expedida por las autoridades competentes; observaciones o provenientes de las inspecciones de la CNBV, informes de Auditoría Externa o Auditoría Interna, o de nuestros fondeadores; modificaciones propuestas a partir de la supervisión periódica de la operación.\""
+      "a": "Cambios en la normatividad expedida por las autoridades competentes; observaciones o provenientes de las inspecciones de la CNBV, informes de Auditoría Externa o Auditoría Interna, o de nuestros fondeadores; modificaciones propuestas a partir de la supervisión periódica de la operación."
     },
     {
       "q": "¿Cómo funciona el \"Derecho de Veto\" del presidente en el Comité Operativo de Crédito y en qué se diferencia del \"Voto de Calidad\"?",
-      "a": "\"Voto de Calidad: Quien presida el Comité o bajo su figura de autoridad, no podrá autorizar una solicitud sobreponiéndose a una resolución empatada, por lo que pasará al estatus de 'Rechazada para Revisión'. Derecho de Veto: Si el Comité de crédito autorizara una solicitud que representa un Alto Riesgo para la institución, quien preside tendrá el derecho de vetar la operación para que sea revisada nuevamente agregando medidas que mitiguen el riesgo.\""
+      "a": "Voto de Calidad: Quien presida el Comité o bajo su figura de autoridad, no podrá autorizar una solicitud sobreponiéndose a una resolución empatada, por lo que pasará al estatus de 'Rechazada para Revisión'. Derecho de Veto: Si el Comité de crédito autorizara una solicitud que representa un Alto Riesgo para la institución, quien preside tendrá el derecho de vetar la operación para que sea revisada nuevamente agregando medidas que mitiguen el riesgo."
     },
     {
       "q": "¿Qué debe hacer el Gerente de CI si un cliente con mora acumulada mayor a 61 días solicita renovación?",
-      "a": "\"El cliente no podrá renovar por un plazo de 6 meses y de solicitar una nueva solicitud de crédito después de este tiempo deberá de respaldarse esta nueva solicitud con aval más garantía prendaria o líquida.\""
+      "a": "El cliente no podrá renovar por un plazo de 6 meses y de solicitar una nueva solicitud de crédito después de este tiempo deberá de respaldarse esta nueva solicitud con aval más garantía prendaria o líquida."
     },
     {
       "q": "¿Cuáles son las conductas del personal que se sancionan con baja inmediata, sin posibilidad de otro tipo de sanción previa?",
-      "a": "\"Se sancionará con la baja inmediata del colaborador que: acepte o solicite dinero, regalos o dádivas a los clientes a condición del servicio; instruya al cliente a entregarle el dinero de sus pagos o lo desvíe de las cuentas institucionales; participe por acción u omisión en un hecho fraudulento relacionado con la entrega de crédito, bonificaciones o garantías; ofrezca créditos con recursos ajenos a los que CONSERVA determine; comparta información confidencial de la cartera de clientes y datos personales; falsifique o altere firmas y/o documentación; envíe o distribuya información propia de CONSERVA o de sus clientes a personas ajenas; transgreda el apartado 2.7.10; o no apruebe hasta en una tercera y última oportunidad la evaluación anual en materia de PLD.\""
+      "a": "Se sancionará con la baja inmediata del colaborador que: acepte o solicite dinero, regalos o dádivas a los clientes a condición del servicio; instruya al cliente a entregarle el dinero de sus pagos o lo desvíe de las cuentas institucionales; participe por acción u omisión en un hecho fraudulento relacionado con la entrega de crédito, bonificaciones o garantías; ofrezca créditos con recursos ajenos a los que CONSERVA determine; comparta información confidencial de la cartera de clientes y datos personales; falsifique o altere firmas y/o documentación; envíe o distribuya información propia de CONSERVA o de sus clientes a personas ajenas; transgreda el apartado 2.7.10; o no apruebe hasta en una tercera y última oportunidad la evaluación anual en materia de PLD."
     }
-  ],
+  ,
+    {
+      "q": "¿Cuál es el monto mínimo y máximo del crédito individual Tu Negocio con CONSERVA?",
+      "a": "Desde $50,000.00 hasta $500,000.00. El monto máximo del primer crédito es hasta $500,000.00."
+    },
+    {
+      "q": "¿Cuál es la tasa de interés mensual del crédito individual de $50,000 a $100,000?",
+      "a": "De $50,000 a $100,000.00 = 7.29% mensual (con IVA). De $100,001 a $200,000 = 7.01% mensual."
+    },
+    {
+      "q": "¿Cuánto cuesta el seguro de vida en el crédito individual y cuál es su suma asegurada?",
+      "a": "La cuota es $10.25 por semana o $41.00 por mes. La suma asegurada total por fallecimiento es $40,000.00: $35,000.00 para el beneficiario designado y $5,000.00 para gastos administrativos de CONSERVA."
+    },
+    {
+      "q": "¿Cuál es el plazo del crédito individual Tu Negocio con CONSERVA?",
+      "a": "De 4 meses hasta 24 meses. El plazo depende del destino del crédito: capital de trabajo hasta 10 meses, activos fijos hasta 24 meses."
+    },
+    {
+      "q": "¿Cuál es la edad mínima y máxima para solicitar el crédito individual?",
+      "a": "La edad del titular debe ser de 23 a 64 años para clientes nuevos. Para clientes de 65 años en adelante, se requieren documentos adicionales."
+    },
+    {
+      "q": "¿Qué bonificación ofrece el crédito individual por pago puntual?",
+      "a": "0.50% de los intereses pagados, desde el primer ciclo, para clientes que paguen puntualmente."
+    },
+    {
+      "q": "¿Cuál es el CAT del crédito individual Tu Negocio con CONSERVA?",
+      "a": "El CAT promedio está sujeto a variación. Consulte el dato actualizado en la sucursal."
+    },
+    {"q": "¿Cuál es el plazo máximo del crédito individual Tu Negocio con CONSERVA?", "a": "El plazo del crédito individual va de 4 meses hasta 24 meses. Para capital de trabajo (mercancía): hasta 10 meses. Para activos fijos: hasta 24 meses. En algunos casos especiales hasta 14 meses."},
+    {"q": "¿Cuánto es la bonificación por pago puntual en el crédito individual?", "a": "0.50% de los intereses pagados, desde el primer ciclo, para clientes que paguen puntualmente todas sus cuotas sin excepción."}],
   "MAN_SOL": [
     {
       "q": "¿Cuál es el monto mínimo y máximo del crédito solidario?",
       "a": "Desde $4,000.00 hasta $80,000.00. En la zona de Cintalapa el mínimo es desde $3,000.00."
+    },
+    {
+      "q": "¿Cuánto es el monto mínimo que puedo pedir prestado en el crédito Mujeres de Palabra?",
+      "a": "El monto mínimo del crédito solidario Mujeres de Palabra es de $4,000.00. En la zona de Cintalapa el mínimo es desde $3,000.00. El monto máximo es de $80,000.00."
+    },
+    {
+      "q": "¿Qué cantidad mínima y máxima prestan en el crédito grupal solidario?",
+      "a": "Mínimo: $4,000.00 (o $3,000.00 en Cintalapa). Máximo: $80,000.00. Los límites generales del crédito solidario Mujeres de Palabra van desde $4,000.00 hasta $80,000.00."
     },
     {
       "q": "¿Qué porcentaje corresponde a la Garantía Líquida sobre el monto solicitado?",
@@ -596,7 +679,41 @@ export const FAQS = {
       "q": "¿Cuál es la escala de autorización de créditos según el monto solicitado para casos sin alerta PLD?",
       "a": "*R:*"
     }
-  ],
+  ,
+    {
+      "q": "¿Cuál es la tasa de interés del crédito solidario Mujeres de Palabra?",
+      "a": "Sin bonificación: 3.913% mensual. Con bonificación por pago puntual: 3.413% mensual. Tasa insoluta anual: 91.3%. CAT: 200.1% (ejemplo sobre $25,000 a 24 semanas)."
+    },
+    {
+      "q": "¿Cuánto es la bonificación por pago puntual en Mujeres de Palabra?",
+      "a": "0.5% del interés insoluto cobrado para clientes del 1er al 5to ciclo y reingresos. 0.75% del 6to al 9no ciclo. 1% a partir del 10mo ciclo en adelante."
+    },
+    {
+      "q": "¿Cuál es la edad mínima para solicitar el crédito solidario Mujeres de Palabra?",
+      "a": "La edad mínima es de 18 años en adelante. No hay límite de edad máxima establecido en el catálogo de producto."
+    },
+    {
+      "q": "¿Cada cuándo se realiza el pago del crédito solidario Mujeres de Palabra?",
+      "a": "La periodicidad del pago es semanal o catorcenal (este último previo estudio). No existe la modalidad mensual en este producto."
+    },
+    {
+      "q": "¿Tienen comisiones los créditos de Mujeres de Palabra?",
+      "a": "No. El crédito solidario Mujeres de Palabra no cobra comisiones de ningún tipo."
+    },
+    {
+      "q": "¿Cuánto es el ahorro voluntario mínimo en Mujeres de Palabra?",
+      "a": "El ahorro voluntario es administrado de forma autónoma por el grupo solidario. El mínimo recomendado es de $10 pesos semanales, aunque el grupo decide la cantidad."
+    },
+    {
+      "q": "¿Cuál es el CAT del crédito solidario Mujeres de Palabra?",
+      "a": "200.1% sin IVA, para fines informativos y de comparación. Ejemplo calculado sobre un crédito de $25,000 a un plazo de 24 semanas."
+    },
+    {
+      "q": "¿Cuánto es la suma asegurada del seguro de vida en Mujeres de Palabra?",
+      "a": "La suma asegurada por fallecimiento es de $35,000.00. La empresa condona la deuda individual del grupo en caso de fallecimiento de la titular."
+    },
+    {"q": "¿Cuánto es la cuota semanal del seguro de vida en el crédito solidario Mujeres de Palabra?", "a": "$10.25 por semana por cliente (con IVA incluido). La suma asegurada por fallecimiento es de $35,000.00. Edad de aceptación: de 18 a 89 años."},
+    {"q": "¿Cuál es el CAT del crédito Mujeres de Palabra?", "a": "El CAT es de 200.1% sin IVA, para fines informativos y de comparación. Ejemplo calculado sobre un crédito por $25,000.00 a un plazo de 24 semanas."}],
   "MAN_VIA": [
     {
       "q": "¿Con cuántos días hábiles de anticipación debe solicitarse un viático y cuál es el horario límite para que cuente como primer día hábil?",
@@ -690,7 +807,13 @@ export const FAQS = {
       "q": "¿Un colaborador que sale a una comisión de campo desde la misma ciudad puede solicitar viáticos por alimentos si su actividad dura todo el día?",
       "a": "**Depende de la distancia y del tipo de colaborador.** Hay dos restricciones independientes que deben revisarse:\n\n1. **Regla de los 50 km:** *\"No se reembolsarán los gastos por concepto de alimentos si ocurren dentro de los primeros 50 kilómetros desde la ciudad de origen del colaborador.\"* Si la comisión es dentro de ese radio, no aplican alimentos independientemente de cuántas horas dure.\n\n2. **Regla del personal corporativo:** *\"El personal del corporativo que realice actividades que por su propia naturaleza deban ser desempeñadas en campo, no podrá solicitar viáticos por alimentos, cuando sus viajes sean de ida y de regreso.\"*\n\n> Si el colaborador es del corporativo y su actividad de campo es de ida y vuelta, **no aplican alimentos**, incluso si supera los 50 km. Si es personal de sucursal, aplica la regla de los 50 km como único límite, además del horario de salida/regreso para viajes de un día."
     }
-  ],
+  ,
+    {
+      "q": "¿Cuál es el tope de hospedaje para Subdirectores y Directores en Puebla, CDMX y otras ciudades?",
+      "a": "Para Gerentes Regionales, Subdirectores y Direcciones: Chiapas $1,400, Tabasco $1,300, Mérida $1,400, Puebla $1,700, CDMX $1,400, Edo. México $1,200. Para Subdirección General, Dirección General y Consejo: Chiapas $1,600, Tabasco $1,600, Mérida $1,900, Puebla $2,000, CDMX $2,300, Edo. México $1,500."
+    },
+    {"q": "¿Cuánto es el tope de alimentos por comida para promotores, analistas y coordinadores en viáticos?", "a": "Para Promotores, Analistas y Coordinadores: Personal SOFOM $200.00 por alimento, Personal EOG $180.00 por alimento. Para Gerentes: SOFOM $250.00, EOG $200.00. Para Directores/Subdirectores: $250.00 SOFOM. Para Dirección General y Consejo: $300.00."},
+    {"q": "¿Cuál es el tope de hospedaje por noche para promotores y coordinadores en Chiapas?", "a": "Para Promotores, Analistas, Coordinadores y Gerentes de Sucursal: Chiapas $900.00, Tabasco $1,100.00, Mérida $1,150.00, Puebla $1,400.00, CDMX $1,400.00, Estado de México $900.00 por noche."}],
   "MAN_HOG": [
     {
       "q": "¿Cuál es el monto mínimo y el monto máximo del crédito \"Tu Hogar con CONSERVA\"?",
@@ -788,5 +911,21 @@ export const FAQS = {
       "q": "¿La tasa de interés puede ajustarse para distintos segmentos o regiones? ¿Quién tiene facultad para hacerlo?",
       "a": "**Sí puede ajustarse por segmento, pero con límites estrictos.** La política establece una aparente contradicción que debe leerse completa:\n\n1. *\"La tasa de interés no podrá ser modificada durante la vigencia del crédito.\"* — Esto aplica al crédito individual ya otorgado.\n\n2. *\"La Dirección Comercial de CONSERVA, previa autorización del Comité de Crédito podrá establecer tasas por segmento de clientes, sucursal, región o área geográfica que defina, **sin exceder las tasas establecidas en este manual y su ficha técnica**.\"*\n\n3. *\"La Tasa de interés de este producto solo podrá ser modificada con autorización del Comité de Crédito de CONSERVA.\"*\n\nEn resumen: la tasa puede **diferenciarse por segmento o región** (hacia abajo), pero **nunca modificarse** durante la vigencia de un crédito ya firmado, y cualquier ajuste requiere autorización del **Comité de Crédito**."
     }
-  ]
+  ,
+    {
+      "q": "¿Cuál es la tasa mensual del crédito Tu Hogar con CONSERVA?",
+      "a": "Tasa Global mensual más IVA: 4.75%. Tasa anual más IVA: 57%. CAT: 91% (ejemplo sobre $50,000 a 24 meses)."
+    },
+    {
+      "q": "¿Cuánto cuesta el seguro de vida en Tu Hogar con CONSERVA?",
+      "a": "$52.00 mensuales, sujeto a cambios en la tarifa de la aseguradora. Se paga al momento del depósito de la Garantía Líquida, previo al desembolso."
+    },
+    {
+      "q": "¿Cuáles son los plazos disponibles en Tu Hogar con CONSERVA?",
+      "a": "Para créditos hasta $70,000: 6, 12, 18, 24 y 36 meses. Para créditos de $70,000 hasta $100,000: 6, 12, 18, 24, 36, 42 y 48 meses."
+    },
+    {
+      "q": "¿Cuál es la edad para solicitar el crédito Tu Hogar con CONSERVA?",
+      "a": "La edad del titular debe estar entre 18 y 70 años cumplidos. Además se requiere antigüedad mínima de residencia en la vivienda de 24 meses."
+    }]
 };

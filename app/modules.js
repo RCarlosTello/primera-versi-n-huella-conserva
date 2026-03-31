@@ -14,12 +14,14 @@ import {
     MAN_DATA, TOPIC_KEYWORDS, MANUAL_KEYWORDS,
     VIA_HOSPEDAJE, VIA_DESTINOS_MAP, VIA_ALIMENTOS,
     VIA_GRUPOS, VIA_POLITICAS, VIA_INTERNACIONAL,
+    getDistanciaKm, evaluarViaticos,
     VIA_DISTANCIAS, VIA_UBICACION_MAP
 } from '../data/manuales.js';
 
 // Sanciones data is now lazy loaded in handleSAN()
 
 import { FAQS } from '../data/faqs.js';
+import { semanticSearch, deepSearch, isOnline } from './search.js';
 
 export { MANUAL_KEYWORDS };
 
@@ -95,16 +97,29 @@ export function handleMANLineasPrompt() {
     };
 }
 
+/** Temas específicos por línea de crédito — Mobile optimized (etiquetas cortas) */
+const TEMAS_POR_LINEA = {
+    MAN_SOL: ['Montos', 'Plazos', 'Tasas e intereses', 'Integrantes del grupo', 'Requisitos', 'Garantías', 'Bonificación', 'Seguro de vida', 'Cobranza y mora'],
+    MAN_IND: ['Montos', 'Plazos', 'Tasas e intereses', 'Requisitos', 'Garantías', 'Seguro de vida', 'Cobranza'],
+    MAN_TAC: ['Montos', 'Plazos', 'Tasas e intereses', 'Integrantes del grupo', 'Requisitos', 'Garantías', 'Bonificación', 'Seguro'],
+    MAN_HOG: ['Montos', 'Plazos', 'Tasas e intereses', 'Requisitos', 'Garantías', 'Destino del crédito', 'Comprobación del uso'],
+    MAN_PAR: ['Montos', 'Plazos', 'Tasas e intereses', 'Requisitos de elegibilidad', 'Garantías', 'Seguro', 'Cobranza'],
+    MAN_CAJ: ['Control y manejo', 'Responsable', 'Comprobación y reembolso', 'Control del proceso', 'Control de aprobaciones'],
+    MAN_AUD: ['Auditoría genera valor', 'Independencia obligatoria', 'Planeación por riesgo', 'Control del crédito', 'Calificación por sucursal', 'Tickets con seguimiento', 'Ética exigible'],
+};
+
 /** Paso 2 del Modo Guiado: muestra temas disponibles para ese manual. */
 export function handleMANTemasPrompt(linea) {
     const data = MAN_DATA[linea.id];
     if (!data) return { content: `Manual no encontrado para la línea seleccionada.`, source: null };
 
+    const temas = TEMAS_POR_LINEA[linea.id] || data.temas || [];
+
     return {
         content: `Consultando el **${data.nombre}**.\n\n📝 *${data.descripcion}*\n\n¿Sobre qué tema deseas información?`,
         source: data.fuente,
         needsTema: true,
-        botonesTemas: [...data.temas],
+        botonesTemas: temas,
     };
 }
 
@@ -156,29 +171,13 @@ export function handleMAN(query, linea, collaborator) {
 
     const q = (query || '').toLowerCase();
 
-    // ── BÚSQUEDA EN FAQs ───────────────────────────────────────────────────────
+    // ── BÚSQUEDA SEMÁNTICA EN FAQs ──────────────────────────────────────────────
     if (FAQS && FAQS[linea.id]) {
-        const qClean = q.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\w\s]/gi, '');
-        const qWords = qClean.split(/\s+/).filter(w => w.length > 3);
+        const _results = semanticSearch(query, FAQS[linea.id], { topK: 3, minScore: 0.25, fuzzy: true, expandSynonyms: true });
+        const bestScore = _results.length > 0 ? _results[0].score : 0;
+        const bestMatch = _results.length > 0 ? _results[0].faq : null;
 
-        let bestMatch = null;
-        let bestScore = 0;
-
-        for (const faq of FAQS[linea.id]) {
-            const faqQClean = faq.q.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\w\s]/gi, '');
-            let matches = 0;
-            for (const word of qWords) {
-                if (faqQClean.includes(word)) matches++;
-            }
-            const score = matches / Math.max(qWords.length, 1);
-            if (score > bestScore) {
-                bestScore = score;
-                bestMatch = faq;
-            }
-        }
-
-        // Si hay una coincidencia fuerte (más del 60% de las palabras clave encontradas)
-        if (bestScore >= 0.6 && bestMatch) {
+        if (bestScore >= 0.25 && bestMatch) {
             let answerText = bestMatch.a;
 
             // ── RAZONAMIENTO DINÁMICO PARA CAJA CHICA (JERARQUÍA Y AUTORIZACIONES) ──
@@ -623,7 +622,10 @@ export function handleVIA(query, collaborator) {
     const grupo = getGrupoVIA(puesto);
     const tipoNomina = getTipoNomina(puesto);
 
-    const origenRegion = getRegionOrigen(collaborator);
+    // Use precise city from collaborator profile (populated from ubicacion map)
+    const ciudadOrigen = collaborator?.ciudad || '';
+    const estadoOrigen = collaborator?.estado || '';
+    const origenRegion = collaborator?.destino_via || getRegionOrigen(collaborator);
     const destinoData = detectDestino(q, origenRegion);
     const destinoRegion = destinoData?.region;
     const destinoLabel = destinoData ? (destinoData.matched.toUpperCase() !== destinoRegion.toUpperCase() ? `${destinoData.matched.toUpperCase()} (${destinoRegion.toUpperCase()})` : destinoRegion.toUpperCase()) : '';
@@ -643,29 +645,57 @@ export function handleVIA(query, collaborator) {
         calcNoches = Math.max(0, calcDias - 1);
     }
 
-    // Respuesta para consultas de ciudad específica sin días
+    // Respuesta para consultas de ciudad específica sin días — RESPUESTA RICA
     if (destinoData && calcDias === 0) {
-        const distancia = getDistanciaRegiones(origenRegion, destinoRegion);
+        // Try city-level distance first (more precise), fallback to region
+        const distanciaCiudad = ciudadOrigen ? getDistanciaKm(ciudadOrigen, destinoData?.matched || destinoRegion) : null;
+        const evalVia = ciudadOrigen ? evaluarViaticos(ciudadOrigen, destinoData?.matched || destinoRegion) : null;
+        const distancia = distanciaCiudad ?? getDistanciaRegiones(origenRegion, destinoRegion);
         const montoNoche = VIA_HOSPEDAJE[destinoRegion]?.[grupo] || 0;
         const montoAlimento = VIA_ALIMENTOS[grupo]?.[tipoNomina] || 0;
+        const montoAlimentoDiario = montoAlimento * 3;
+        const tipoTransporte = distancia >= 500 ? 'aéreo (clase económica)' : 'terrestre';
+        const anticipacionTransporte = distancia >= 500 ? '15 días hábiles' : '2 días hábiles';
 
-        let customRes = `📍 **Consulta de Viáticos (${destinoLabel})**\n\n`;
-        customRes += `**Puesto:** ${puesto} (Grupo ${grupo}).\n\n`;
+        // Detectar qué aspecto pregunta: solo hospedaje, solo alimentos, o ambos
+        const pregHospedaje = /hotel|hospedaje|alojamiento|noche|dormir/.test(q);
+        const pregAlimentos  = /comer|comida|alimento|desayuno|cena|almuerzo/.test(q);
 
-        if (distancia < 50) {
-            customRes += `⚠️ **Aviso:** Dentro de la misma ciudad o en distancias menores a 50 km no hay autorización para viáticos de hospedaje ni alimentación; para casos excepcionales, consulte con su jefe inmediato.\n\n`;
+        let customRes = `📍 **Viáticos para ${destinoLabel}**\n`;
+        customRes += `👤 **Tu perfil:** ${puesto} — Grupo ${grupo} (${tipoNomina})\n`;
+        customRes += `📏 **Distancia aprox.:** ${distancia || '< 50'} km · Transporte: ${tipoTransporte}\n\n`;
+
+        if (distancia !== null && distancia < 50) {
+            customRes += `⚠️ La distancia es de aproximadamente **${distancia} km**. Al ser un viaje de ida y vuelta en el mismo día sin pernocta, **no aplican alimentos** según política.\nPara casos excepcionales con salida antes de las 8 AM y regreso después de las 7 PM, consulta con tu jefe inmediato.`;
+        } else if (!distancia || distancia === 0) {
+            customRes += `⚠️ Origen y destino parecen ser la misma ciudad. No aplican viáticos por traslado local.`;
         } else {
-            customRes += `**Monto Autorizado:** Te corresponde un máximo de **$${montoNoche.toLocaleString('es-MX')}.00** por noche de hospedaje en ${destinoLabel} y **$${montoAlimento.toLocaleString('es-MX')}.00** por cada alimento ($${(montoAlimento * 3).toLocaleString('es-MX')}.00 diarios).\n\n`;
-            if (destinoRegion === 'cdmx') {
-                customRes += `⚠️ **Nota:** En CDMX el importe puede modificarse de acuerdo con la zona del evento.\n\n`;
+            if (!pregAlimentos || pregHospedaje) {
+                customRes += `🏨 **Hospedaje en ${destinoLabel}:**\n`;
+                customRes += `   Máximo **$${montoNoche.toLocaleString('es-MX')}.00 por noche**.\n`;
+                if (destinoRegion === 'cdmx') customRes += `   ⚠️ En CDMX el monto varía según la zona del evento.\n`;
+                customRes += `\n`;
             }
+            if (!pregHospedaje || pregAlimentos) {
+                customRes += `🍽️ **Alimentos en ${destinoLabel}:**\n`;
+                customRes += `   **$${montoAlimento.toLocaleString('es-MX')}.00 por alimento** · $${montoAlimentoDiario.toLocaleString('es-MX')}.00 al día (3 alimentos).\n`;
+                customRes += `   *(Si el hotel incluye desayuno, solo aplican 2 alimentos: $${(montoAlimento * 2).toLocaleString('es-MX')}.00/día)*\n\n`;
+            }
+            customRes += `✈️ **Transporte:** ${tipoTransporte.charAt(0).toUpperCase() + tipoTransporte.slice(1)}`;
+            customRes += ` · Solicitar con ${anticipacionTransporte} de anticipación.\n\n`;
+            customRes += `💡 ¿Cuántos días dura tu viaje? Dime y calculo el total exacto. `;
+            customRes += `_(Ej: "Voy a ${destinoData.matched} 3 días")_`;
         }
-
-        customRes += `¿Deseas que calcule el total para una ruta y días específicos? (ej. "Voy de Puebla a CDMX 2 días")`;
 
         return {
             content: customRes,
-            source: `MOD-VIA-006 MANUAL_VIATICOS — Anexo 1 y 2`
+            source: `MOD-VIA-006 MANUAL_VIATICOS — Anexo 1 y 2`,
+            botonesTemas: [
+                `Calcular total para ${destinoData.matched} 1 día`,
+                `Calcular total para ${destinoData.matched} 2 días`,
+                `Calcular total para ${destinoData.matched} 3 días`,
+                'Topes de Hospedaje por Ciudad',
+            ]
         };
     }
 
@@ -778,28 +808,13 @@ export function handleVIA(query, collaborator) {
         };
     }
 
-    // FAQ y búsquedas generales
+    // FAQ y búsquedas semánticas para Viáticos
     if (FAQS && FAQS['MAN_VIA']) {
-        const qClean = q.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\w\s]/gi, '');
-        const qWords = qClean.split(/\s+/).filter(w => w.length > 3);
+        const _viaRes = semanticSearch(query, FAQS['MAN_VIA'], { topK: 2, minScore: 0.25, fuzzy: true, expandSynonyms: true });
+        const bestScore = _viaRes.length > 0 ? _viaRes[0].score : 0;
+        const bestMatch = _viaRes.length > 0 ? _viaRes[0].faq : null;
 
-        let bestMatch = null;
-        let bestScore = 0;
-
-        for (const faq of FAQS['MAN_VIA']) {
-            const faqQClean = faq.q.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\w\s]/gi, '');
-            let matches = 0;
-            for (const word of qWords) {
-                if (faqQClean.includes(word)) matches++;
-            }
-            const score = matches / Math.max(qWords.length, 1);
-            if (score > bestScore) {
-                bestScore = score;
-                bestMatch = faq;
-            }
-        }
-
-        if (bestScore >= 0.6 && bestMatch) {
+        if (bestScore >= 0.25 && bestMatch) {
             let answerText = bestMatch.a;
 
             if (q.includes('devuelvo') || q.includes('sobró') || q.includes('sobro')) {
@@ -858,153 +873,457 @@ function getSugerenciaDestino(origen) {
 // ─── MOD-SAN-007 ─────────────────────────────────────────────────────────────
 
 export async function handleSAN(query) {
-    const { SAN_DATA, buscarFolios, detectarFormatosRelevantes, TODOS_LOS_FORMATOS } = await import('../data/sanciones.js');
+    const { SAN_DATA, buscarFolios, detectarFormatosRelevantes, TODOS_LOS_FORMATOS, FORMATOS_SANCIONES, FOLIO_FORMAT_MAP } = await import('../data/sanciones.js');
     const q = (query || '').toLowerCase().trim();
-    
-    // ROL: Experto en Recursos Humanos
-    const introExperto = ""; // Eliminado por solicitud del usuario
 
-    // 0. Detectar si pide uno de los temas informativos (1-7)
-    const infoKey = Object.keys(SAN_DATA.info_temas).find(k => q.includes(k) || (q.length > 5 && k.includes(q)));
+    // Helper: detectar qué vez menciona el usuario (primera, segunda, tercera, cuarta)
+    function detectarPaso(texto) {
+        const t = texto.toLowerCase();
+        if (t.includes('primera vez') || t.includes('1era') || t.includes('1ra') || t.match(/\bprimera\b/)) return 1;
+        if (t.includes('segunda vez') || t.includes('2da') || t.match(/\bsegunda\b/)) return 2;
+        if (t.includes('tercera vez') || t.includes('3era') || t.match(/\btercera\b/)) return 3;
+        if (t.includes('cuarta vez')  || t.includes('4ta') || t.match(/\bcuarta\b/))  return 4;
+        return null;
+    }
+
+    // Helper: construir HTML de un folio LEVE con instancias completas y formatos por paso
+    function renderFolioLeve(folio, pasoFiltro = null) {
+        const nivel = 'LEVE';
+        let html = `<div class="contenedor-respuestas"><details class="tarjeta-sancion" open>
+            <summary>📋 Folio ${folio.folio} — ${nivel}: ${folio.conducta.substring(0, 55)}...</summary>
+            <div class="contenido-sancion">
+            <p><b>Conducta:</b> ${folio.conducta}</p>
+            <p><b>Salida Económica:</b> ${folio.salida_economica}</p>
+            <br><b>Pasos y acciones correctivas:</b><br>`;
+
+        const instancias = pasoFiltro
+            ? folio.instancias.filter(i => i.paso === pasoFiltro)
+            : folio.instancias;
+
+        instancias.forEach(inst => {
+            const fmt = inst.formato ? FORMATOS_SANCIONES[inst.formato] : null;
+            html += `<div style="margin:8px 0;padding:8px;background:rgba(0,0,0,0.04);border-radius:8px;border-left:3px solid #4a9c6a;">
+                <b>Paso ${inst.paso}:</b> ${inst.accion}<br>
+                <small><b>Instancia:</b> ${inst.instancia}</small>`;
+            if (fmt) {
+                html += `<br><a href="${fmt.url}" class="btn-descarga" download="${fmt.archivo}">📄 Descargar: ${fmt.nombre}</a>`;
+            }
+            html += `</div>`;
+        });
+
+        // Add all formats for this folio based on Excel mapping
+        const allFolioFmts = FOLIO_FORMAT_MAP[folio.folio];
+        if (allFolioFmts && allFolioFmts.length > 0) {
+            const uniqueFmts = [...new Set(allFolioFmts)];
+            if (uniqueFmts.length > 0) {
+                html += `<div style="margin-top:10px;padding-top:8px;border-top:1px solid rgba(0,0,0,0.08)"><b>📂 Formatos de este folio:</b><br>`;
+                for (const key of uniqueFmts) {
+                    const f = FORMATOS_SANCIONES[key];
+                    if (f) html += `<a href="${f.url}" class="btn-descarga" download="${f.archivo}">📄 Descargar: ${f.nombre}</a>`;
+                }
+                html += `</div>`;
+            }
+        }
+
+        html += `</div></details></div>`;
+        return html;
+    }
+
+    // Helper: construir HTML para folio MODERADO/GRAVE con formatos
+    function renderFolioSimple(folio, nivel) {
+        const instanciaLabel = nivel === 'GRAVE'
+            ? SAN_DATA.nivel_grave.instancia
+            : 'Enlace Talento / Enlace Jurídico';
+        const accionLabel = nivel === 'GRAVE'
+            ? SAN_DATA.nivel_grave.accion
+            : 'Llamado escrito → Plan de Mejora → Acta Administrativa';
+        const salida = folio.salida_economica || (nivel === 'GRAVE' ? SAN_DATA.nivel_grave.salida_economica : 'Finiquito');
+
+        // Usar mapa exacto del Excel (FOLIO_FORMAT_MAP) si disponible
+        const formatos = detectarFormatosRelevantes(folio.conducta, nivel, folio.folio);
+
+        let html = `<div class="contenedor-respuestas"><details class="tarjeta-sancion" open>
+            <summary>📋 Folio ${folio.folio} — ${nivel}: ${folio.conducta.substring(0,55)}...</summary>
+            <div class="contenido-sancion">
+            <p><b>Conducta:</b> ${folio.conducta}</p>
+            <p><b>Nivel:</b> ${nivel}</p>
+            <p><b>Instancia Facultada:</b> ${instanciaLabel}</p>
+            <p><b>Acción Correctiva:</b> ${accionLabel}</p>
+            <p><b>Salida Económica:</b> ${salida}</p>`;
+
+        if (formatos.length > 0) {
+            html += `<br><b>📂 Formatos a utilizar:</b><br>`;
+            formatos.forEach(f => {
+                if (f) html += `<a href="${f.url}" class="btn-descarga" download="${f.archivo}">📄 Descargar: ${f.nombre}</a>`;
+            });
+        }
+        html += `</div></details></div>`;
+        return html;
+    }
+
+    // 0. Temas informativos (1-7)
+    const infoKey = Object.keys(SAN_DATA.info_temas).find(k =>
+        q.includes(k) || (q.length > 5 && k.includes(q))
+    );
     if (infoKey) {
         const info = SAN_DATA.info_temas[infoKey];
         return {
-            content: `<div class="contenedor-respuestas">
-                <details class="tarjeta-sancion" open>
-                    <summary>📍 ${info.titulo}</summary>
-                    <div class="contenido-sancion">
-                        ${info.contenido}
-                    </div>
-                </details>
-            </div>`,
+            content: `<div class="contenedor-respuestas"><details class="tarjeta-sancion" open>
+                <summary>📍 ${info.titulo}</summary>
+                <div class="contenido-sancion">${info.contenido}</div>
+            </details></div>`,
             source: SAN_DATA.fuente
         };
     }
 
-    // 1. Detectar si pide consulta de folios general
-    if (q.includes('folio') && (q.includes('consulta') || q.includes('detalle') || q.includes('ver'))) {
-         return {
-            content: `📍 **Consulta de Folios (1-65)**\n\nLa Matriz de Sanciones se divide en 65 folios técnicos. ¿Sobre cuál deseas consultar?\n\n- **LEVE:** Folios 1 al 4\n- **MODERADA:** Folios 5 al 52\n- **GRAVE:** Folios 53 al 65`,
-            source: SAN_DATA.fuente,
-            source: SAN_DATA.fuente
-        };
+    // 1. Folio específico por número
+    const folioMatch = q.match(/folio\s*(\d+)/);
+    if (folioMatch) {
+        const num = parseInt(folioMatch[1], 10);
+        const paso = detectarPaso(q);
+
+        if (num >= 1 && num <= 4) {
+            const folio = SAN_DATA.nivel_leve.folios.find(f => f.folio === num);
+            if (folio) return { content: renderFolioLeve(folio, paso), source: SAN_DATA.fuente };
+        } else if (num >= 5 && num <= 52) {
+            const folio = SAN_DATA.nivel_moderado.folios.find(f => f.folio === num);
+            if (folio) return { content: renderFolioSimple(folio, 'MODERADO'), source: SAN_DATA.fuente };
+        } else if (num >= 53 && num <= 75) {
+            const folio = SAN_DATA.nivel_grave.folios.find(f => f.folio === num);
+            if (folio) return { content: renderFolioSimple(folio, 'GRAVE'), source: SAN_DATA.fuente };
+        }
     }
 
-    // 2. Detectar si pide niveles específicos
-    if (q.includes('leve')) {
-        let res = `🟢 **Nivel LEVE — Folios 1 al 4**\n\nConductas de bajo impacto. Selecciona un folio para ver el detalle:\n\n`;
+    // 2. Listados por nivel
+    if (q.includes('leve') && !q.includes('folio')) {
+        let res = `🟢 **Nivel LEVE — Folios 1 al 4**\n\n`;
         SAN_DATA.nivel_leve.folios.forEach(f => {
             res += `- **Folio ${f.folio}:** ${f.conducta.substring(0, 80)}...\n`;
         });
+        res += `\nEscribe **"Folio X"** para ver pasos, instancias y formatos de descarga.`;
         return { content: res, source: SAN_DATA.fuente };
     }
-    if (q.includes('grave')) {
-        let res = `🔴 **Nivel GRAVE — Folios 53 al 65**\n\nConductas de tolerancia cero. Selecciona un folio para ver el detalle:\n\n`;
+    if (q.includes('grave') && !q.includes('folio')) {
+        let res = `🔴 **Nivel GRAVE — Folios 53 al 65**\n\nTolerancia cero. Escribe el número de folio para ver detalle completo.\n\n`;
         SAN_DATA.nivel_grave.folios.forEach(f => {
             res += `- **Folio ${f.folio}:** ${f.conducta.substring(0, 80)}...\n`;
         });
         return { content: res, source: SAN_DATA.fuente };
     }
-    if (q.includes('moderado')) {
+    if (q.includes('moderado') && !q.includes('folio')) {
         return {
-            content: `🟡 **Nivel MODERADO — Folios 5 al 52**\n\nAbarca negligencia operativa y bajo rendimiento. Indícame el número de folio o la conducta específica que deseas consultar (Ej: "Folio 10" o "bajo rendimiento").`,
-            source: SAN_DATA.fuente,
+            content: `🟡 **Nivel MODERADO — Folios 5 al 52**\n\nAbarca negligencia, bajo rendimiento e incumplimientos operativos.\n\nEscribe la conducta o número de folio para ver detalle completo (ej: _"llegadas tarde"_, _"Folio 8"_, _"uso de recursos"_).`,
             source: SAN_DATA.fuente
         };
     }
 
-    // 3. Detectar si pide folios específicos por número
-    const folioMatch = q.match(/folio\s*(\d+)/);
-    if (folioMatch) {
-        const num = parseInt(folioMatch[1], 10);
-        let folio = null;
-        let nivel = '';
-
-        if (num >= 1 && num <= 4) {
-            folio = SAN_DATA.nivel_leve.folios.find(f => f.folio === num);
-            nivel = 'LEVE';
-        } else if (num >= 5 && num <= 52) {
-            folio = SAN_DATA.nivel_moderado.folios_resumen.find(f => f.folio === num);
-            nivel = 'MODERADO';
-        } else if (num >= 53 && num <= 65) {
-            folio = SAN_DATA.nivel_grave.folios.find(f => f.folio === num);
-            nivel = 'GRAVE';
-        }
-
-        if (folio) {
-            let res = `<div class="contenedor-respuestas">
-                <details class="tarjeta-sancion" open>
-                    <summary>Folio ${num}: ${nivel}</summary>
-                    <div class="contenido-sancion">
-                        <ul>
-                            <li><b>Conducta:</b> ${folio.conducta}</li>
-                            <li><b>Nivel:</b> ${nivel}.</li>
-                            <li><b>Instancia Facultada:</b> ${nivel === 'GRAVE' ? SAN_DATA.nivel_grave.instancia : (nivel === 'LEVE' ? 'Líder inmediato / Enlace Talento' : 'Enlace Talento / Enlace Jurídico')}</li>
-                            <li><b>Acción Correctiva:</b> ${nivel === 'GRAVE' ? SAN_DATA.nivel_grave.accion : (nivel === 'LEVE' ? 'Llamados progresivos hasta acta' : 'Llamado escrito / Plan de Mejora / Acta')}</li>
-                            <li><b>Salida Económica:</b> ${folio.salida_economica || SAN_DATA.nivel_grave.salida_economica || 'Considerar tabulador por antigüedad'}</li>
-                        </ul>`;
-            
-            const formats = detectarFormatosRelevantes(folio.conducta);
-            if (formats.length > 0) {
-                formats.forEach(f => {
-                    res += `<a href="${f.url}" class="btn-descarga">📄 Descargar ${f.nombre}</a>`;
-                });
-            }
-
-            res += `</div>
-                </details>
-            </div>`;
-
-            return { content: res, source: SAN_DATA.fuente };
-        }
+    // 3. Consulta de consulta de folios general
+    if (q.includes('folio') && (q.includes('consulta') || q.includes('ver') || q.includes('todos'))) {
+        return {
+            content: `📍 **Consulta de Folios (1-65)**\n\n- 🟢 **LEVE:** Folios 1 al 4\n- 🟡 **MODERADA:** Folios 5 al 52\n- 🔴 **GRAVE:** Folios 53 al 65\n\nEscribe el número de folio o describe la conducta para buscar.`,
+            source: SAN_DATA.fuente
+        };
     }
 
-    // 4. Búsqueda semántica (Manejo de Ambigüedad)
+    // 4. Formatos directos
+    if (q.includes('formato') || q.includes('descargar') || q.includes('documento')) {
+        let res = `📂 **Formatos institucionales disponibles:**<br><br>`;
+        TODOS_LOS_FORMATOS.forEach(f => {
+            res += `<a href="${f.url}" class="btn-descarga" download="${f.archivo}">📄 Descargar: ${f.nombre}</a>`;
+        });
+        return { content: res, source: SAN_DATA.fuente };
+    }
+
+    // 5. Búsqueda semántica por conducta — ahora muestra pasos e instancias completas
     const resultados = buscarFolios(q);
     if (resultados.length > 0 && q.length > 4) {
-        let res = `<div class="contenedor-respuestas">`;
-        
-        resultados.forEach((f, index) => {
-            const n = f.nivel || (f.folio <= 4 ? 'LEVE' : (f.folio <= 52 ? 'MODERADO' : 'GRAVE'));
-            res += `
-            <details class="tarjeta-sancion">
-                <summary>${index + 1}. ${f.conducta.substring(0, 60)}... (Folio ${f.folio})</summary>
+        const paso = detectarPaso(q);
+        let html = `<div class="contenedor-respuestas">`;
+
+        resultados.slice(0, 4).forEach((item, index) => {
+            const f = item.folio || item;
+            const num = f.folio;
+            const nivel = item.nivel || f.nivel || (num <= 4 ? 'LEVE' : num <= 52 ? 'MODERADO' : 'GRAVE');
+
+            // All levels now have full instancias
+            if (nivel === 'LEVE') {
+                const fullFolio = SAN_DATA.nivel_leve.folios.find(lf => lf.folio === num);
+                if (fullFolio) {
+                    html += renderFolioLeve(fullFolio, paso).replace('<div class="contenedor-respuestas">', '').replace('</div>', '');
+                    return;
+                }
+            } else {
+                // Moderada y Grave — use renderFolioSimple with full data
+                const allFolios = [...SAN_DATA.nivel_moderado.folios, ...SAN_DATA.nivel_grave.folios];
+                const fullFolio = allFolios.find(lf => lf.folio === num);
+                if (fullFolio) {
+                    html += renderFolioSimple(fullFolio, nivel).replace('<div class="contenedor-respuestas">', '').replace('</div>', '');
+                    return;
+                }
+            }
+            // MODERADO / GRAVE
+            const formatos = detectarFormatosRelevantes(f.conducta, nivel, f.folio);
+            const instanciaLabel = nivel === 'GRAVE' ? SAN_DATA.nivel_grave.instancia : (folio.instancias?.[0]?.instancia || 'Enlace Talento / Enlace Jurídico');
+            const accionLabel = nivel === 'GRAVE' ? SAN_DATA.nivel_grave.accion : (folio.instancias?.map(i => i.accion).join(' → ') || 'Llamado escrito → Plan de Mejora → Acta');
+            const salida = f.salida_economica || (nivel === 'GRAVE' ? SAN_DATA.nivel_grave.salida_economica : 'Finiquito');
+
+            html += `<details class="tarjeta-sancion">
+                <summary>${index + 1}. Folio ${num} — ${nivel}: ${f.conducta.substring(0,60)}...</summary>
                 <div class="contenido-sancion">
-                    <ul>
-                        <li><b>Conducta:</b> ${f.conducta}</li>
-                        <li><b>Nivel:</b> ${n}.</li>
-                        <li><b>Instancia Facultada:</b> ${n === 'GRAVE' ? SAN_DATA.nivel_grave.instancia : (n === 'LEVE' ? 'Líder inmediato / Enlace Talento' : 'Enlace Talento / Enlace Jurídico')}</li>
-                        <li><b>Acción Correctiva:</b> ${n === 'GRAVE' ? SAN_DATA.nivel_grave.accion : (n === 'LEVE' ? 'Llamados progresivos hasta acta' : 'Llamado escrito / Plan de Mejora / Acta')}</li>
-                        <li><b>Salida Económica:</b> ${f.salida_economica || SAN_DATA.nivel_grave.salida_economica || 'Considerar tabulador por antigüedad'}</li>
-                    </ul>`;
-            
-            const formats = detectarFormatosRelevantes(f.conducta);
-            if (formats.length > 0) {
-                formats.forEach(formato => {
-                    res += `<a href="${formato.url}" class="btn-descarga">📄 Descargar ${formato.nombre}</a>`;
+                <p><b>Conducta:</b> ${f.conducta}</p>
+                <p><b>Instancia:</b> ${instanciaLabel}</p>
+                <p><b>Acción:</b> ${accionLabel}</p>
+                <p><b>Salida Económica:</b> ${salida}</p>`;
+
+            if (formatos.length > 0) {
+                html += `<br>`;
+                formatos.forEach(fmt => {
+                    html += `<a href="${fmt.url}" class="btn-descarga" download="${fmt.archivo}">📄 Descargar: ${fmt.nombre}</a>`;
                 });
             }
-            
-            res += `</div>
-            </details>`;
+            html += `</div></details>`;
         });
 
-        res += `</div>`;
-        return { content: res, source: SAN_DATA.fuente };
+        html += `</div>`;
+
+        // Si hay múltiples resultados, preguntar si el usuario quiere refinar
+        const extraMsg = resultados.length > 1
+            ? `\n\n💡 Encontré **${resultados.length}** conductas relacionadas. ¿Quieres ver el detalle de alguna específica? Escribe el número de folio o indica la **vez** (primera, segunda, tercera vez) para ver el formato exacto.`
+            : '';
+
+        return {
+            content: html + (extraMsg ? `<p style="margin-top:10px;font-size:0.85rem;opacity:0.8;">${extraMsg}</p>` : ''),
+            source: SAN_DATA.fuente
+        };
     }
 
-    // 5. Formatos Directos
-    if (q.includes('formato') || q.includes('documento') || q.includes('descargar')) {
-        let res = `Aquí tienes los formatos institucionales para descarga:<br><br>`;
-        TODOS_LOS_FORMATOS.forEach(f => {
-            res += `<a href="${f.url}" class="btn-descarga">📄 Descargar ${f.nombre}</a>`;
-        });
-        return { content: res, source: SAN_DATA.fuente };
-    }
-
-    // 6. Prompt inicial / Menú (Fallback si no hay coincidencia)
+    // 6. Fallback
     return {
-        content: `Módulo **Matriz de Sanciones (SAN)** activo. ¿Sobre qué tema deseas información?`,
+        content: `Módulo **Matriz de Sanciones** activo.\n\nPuedes:\n- Escribir una conducta: _"llegadas tarde"_, _"uso de recursos"_\n- Consultar un folio: _"Folio 1"_, _"Folio 8"_\n- Indicar el nivel: _"faltas graves"_, _"faltas leves"_\n- Pedir formatos: _"formatos para descarga"_`,
         source: SAN_DATA.fuente
+    };
+}
+
+// ════════════════════════════════════════════════════════════════════
+// MÓDULO: GLOSARIO INSTITUCIONAL
+// ════════════════════════════════════════════════════════════════════
+export async function handleGLOSARIO(input) {
+    const { GLOSARIO, buscarGlosario } = await import('../data/glosario.js');
+    const q = input.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+
+    // Categorías rápidas
+    const catMap = {
+        'financiero': ['CAT','PLD','FT','SOFOM','CNBV','CONDUSEF','CFDI','SPEI','SIC','RFC','CURP','SAT','LISR','RECA','ENR'],
+        'operativo': ['COCS','ENCI','DAF','EOG','HF','MC','OPR','TH','ESR'],
+        'credito': ['DDA','PAR-1','PAR-30','KPI','Bonificación','Ciclo','Garantía Líquida','Individualización','Mesa Directiva','Reestructura','Cobranza Extrajudicial'],
+    };
+
+    for (const [cat, terms] of Object.entries(catMap)) {
+        if (q.includes(cat)) {
+            const entries = GLOSARIO.filter(g => terms.includes(g.term));
+            const txt = entries.map(g =>
+                `**${g.term}** — _${g.full}_\n${g.def}`
+            ).join('\n\n---\n\n');
+            return { content: `📖 **Términos ${cat.charAt(0).toUpperCase()+cat.slice(1)}es:**\n\n${txt}`, source: 'Glosario Institucional CONSERVA' };
+        }
+    }
+
+    // Búsqueda directa
+    const results = buscarGlosario(q.length > 1 ? q : input);
+    if (!results.length) {
+        return {
+            content: `No encontré el término **"${input}"** en el glosario.\n\n💡 Prueba con: CAT, PLD, SOFOM, COCS, PAR-1, DDA, ENCI, SPEI, CFDI, RFC, CURP...`,
+            source: 'Glosario Institucional',
+            botonesTemas: ['Términos Financieros (CAT, PLD, SOFOM)', 'Términos Operativos (COCS, ENCI, DAF)', 'Términos de Crédito (DDA, Ciclo, Bonificación)'],
+        };
+    }
+
+    const txt = results.slice(0,4).map(g =>
+        `**${g.term}** — _${g.full}_\n${g.def}`
+    ).join('\n\n---\n\n');
+
+    return {
+        content: `📖 **${results.length > 1 ? results.length + ' términos encontrados' : 'Término encontrado'}:**\n\n${txt}`,
+        source: 'Glosario Institucional CONSERVA',
+        botonesTemas: results.length > 4 ? [`Ver todos (${results.length})`] : [],
+    };
+}
+
+// ════════════════════════════════════════════════════════════════════
+// MÓDULO: CALCULADORA DE CRÉDITO
+// ════════════════════════════════════════════════════════════════════
+const CALC_PRODUCTS = {
+    sol: { nombre: 'Mujeres de Palabra', tasa_mensual: 0.03913, tasa_bon: 0.03413, seguro_semanal: 10.25, tipo: 'semanal', garantia: 0.10, min: 4000, max: 80000 },
+    tac: { nombre: 'Conserva T Activa', tasa_mensual: 0.045, seguro_semanal: 13.00, tipo: 'semanal', garantia: 0.10, min: 10000, max: 80000 },
+    ind: { nombre: 'Crédito Individual', tasa_mensual: 0.0729, seguro_mensual: 41.00, tipo: 'mensual', garantia: 0.10, min: 50000, max: 500000 },
+    hog: { nombre: 'Tu Hogar con CONSERVA', tasa_mensual: 0.0475, seguro_mensual: 52.00, tipo: 'mensual', garantia: 0.10, min: 10000, max: 100000 },
+    par: { nombre: 'Crédito Paralelo', tasa_mensual: 0.03913, seguro_semanal: 10.25, tipo: 'semanal', garantia: 0.10, min: 1000, max: 30000 },
+};
+
+function calcCuota(monto, tasa_mensual, semanas = null, meses = null) {
+    if (semanas) {
+        const tasa_semanal = tasa_mensual / 4.33;
+        if (tasa_semanal === 0) return monto / semanas;
+        return monto * (tasa_semanal * Math.pow(1 + tasa_semanal, semanas)) / (Math.pow(1 + tasa_semanal, semanas) - 1);
+    }
+    if (meses) {
+        if (tasa_mensual === 0) return monto / meses;
+        return monto * (tasa_mensual * Math.pow(1 + tasa_mensual, meses)) / (Math.pow(1 + tasa_mensual, meses) - 1);
+    }
+    return 0;
+}
+
+function formatMXN(n) { return '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+
+export async function handleCALC(input, collab) {
+    const q = input.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+
+    // Detect product
+    let prod = null;
+    if (/mujeres|solidari|sol\b|palabr/.test(q)) prod = 'sol';
+    else if (/t.?activa|tactiva/.test(q)) prod = 'tac';
+    else if (/individual|negocio|ind\b/.test(q)) prod = 'ind';
+    else if (/hogar|viviend|hog\b/.test(q)) prod = 'hog';
+    else if (/paralel|par\b/.test(q)) prod = 'par';
+
+    // Detect monto
+    const montoMatch = q.match(/(\d[\d,\.]*)\s*(peso|mxn|mil|k\b)?/);
+    let monto = montoMatch ? parseFloat(montoMatch[1].replace(/,/g,'')) : null;
+    if (monto && /\bmil\b|\bk\b/.test(q) && monto < 1000) monto *= 1000;
+
+    // Detect plazo
+    const semMatch = q.match(/(\d+)\s*semana/);
+    const mesMatch = q.match(/(\d+)\s*mes/);
+    const semanas = semMatch ? parseInt(semMatch[1]) : null;
+    const meses = mesMatch ? parseInt(mesMatch[1]) : null;
+
+    // If not enough data, ask
+    if (!prod) {
+        return {
+            content: `🧮 **Calculadora de Crédito**\n\n¿Para qué producto quieres simular?\n\nEjemplos:\n- _"simular 20000 mujeres de palabra 24 semanas"_\n- _"calcular crédito individual 80000 pesos 12 meses"_\n- _"cuota T Activa 30000 20 semanas"_`,
+            source: 'Calculadora CONSERVA',
+            botonesTemas: ['Simular Mujeres de Palabra', 'Simular Crédito Individual', 'Simular Conserva T Activa', 'Simular Tu Hogar', 'Simular Crédito Paralelo'],
+        };
+    }
+
+    const p = CALC_PRODUCTS[prod];
+
+    // Show product info if no monto
+    if (!monto) {
+        return {
+            content: `🧮 **${p.nombre}**\n\n¿Cuánto necesitas y a qué plazo?\n\n- Rango: ${formatMXN(p.min)} a ${formatMXN(p.max)}\n- Tasa: ${(p.tasa_mensual*100).toFixed(3)}% mensual\n\nEscribe algo como: _"${formatMXN(p.min*2).replace('$','').trim()} pesos a ${p.tipo === 'semanal' ? '20 semanas' : '12 meses'}"_`,
+            source: 'Calculadora CONSERVA',
+        };
+    }
+
+    // Validate monto range
+    if (monto < p.min || monto > p.max) {
+        return { content: `⚠️ Para **${p.nombre}** el rango es de ${formatMXN(p.min)} a ${formatMXN(p.max)}.\nEl monto que indicaste (${formatMXN(monto)}) está fuera del rango.`, source: 'Calculadora CONSERVA' };
+    }
+
+    // Default plazo if not given
+    const plazoSem = semanas || (p.tipo === 'semanal' ? 24 : null);
+    const plazoMes = meses || (p.tipo === 'mensual' ? 12 : null);
+
+    const cuota = calcCuota(monto, p.tasa_mensual, plazoSem, plazoMes);
+    const cuota_bon = p.tasa_bon ? calcCuota(monto, p.tasa_bon, plazoSem, plazoMes) : null;
+    const total = cuota * (plazoSem || plazoMes);
+    const total_bon = cuota_bon ? cuota_bon * (plazoSem || plazoMes) : null;
+    const intereses = total - monto;
+    const garantia = monto * p.garantia;
+    const seguro_total = p.seguro_semanal
+        ? p.seguro_semanal * (plazoSem || (plazoMes * 4.33))
+        : (p.seguro_mensual || 0) * (plazoMes || Math.round(plazoSem / 4.33));
+
+    let plazoLabel = plazoSem ? `${plazoSem} semanas` : `${plazoMes} meses`;
+
+    let md = `🧮 **Simulación — ${p.nombre}**\n\n`;
+    md += `| Concepto | Monto |\n|---|---|\n`;
+    md += `| Monto solicitado | ${formatMXN(monto)} |\n`;
+    md += `| Plazo | ${plazoLabel} |\n`;
+    md += `| Cuota ${p.tipo} | **${formatMXN(cuota)}** |\n`;
+    if (cuota_bon) md += `| Cuota con bonificación | **${formatMXN(cuota_bon)}** ⭐ |\n`;
+    md += `| Total a pagar | ${formatMXN(total)} |\n`;
+    md += `| Total intereses | ${formatMXN(intereses)} |\n`;
+    md += `| Seguro de vida (total) | ${formatMXN(seguro_total)} |\n`;
+    md += `| Garantía líquida (depósito) | ${formatMXN(garantia)} |\n`;
+    md += `\n⚠️ _Simulación estimada. La cuota real puede variar según el análisis de crédito en sucursal._`;
+
+    if (cuota_bon) {
+        const ahorro = (total - total_bon);
+        md += `\n\n⭐ **Pagando puntual ahorras ${formatMXN(ahorro)} en el ciclo.**`;
+    }
+
+    return { content: md, source: `Calculadora CONSERVA — ${p.nombre}` };
+}
+
+// ════════════════════════════════════════════════════════════════════
+// MÓDULO: REQUISITOS DE CRÉDITO
+// ════════════════════════════════════════════════════════════════════
+export async function handleREQ(input) {
+    const { REQUISITOS_POR_PRODUCTO, COMPARACION_PRODUCTOS } = await import('../data/requisitos_credito.js');
+    const q = input.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+
+    // Comparar todos
+    if (/compar|todos|tabla|cuadro|diferencia|versus|vs\.?/.test(q)) {
+        const { headers, rows } = COMPARACION_PRODUCTOS;
+        let md = `📊 **Comparativa de Productos de Crédito CONSERVA**\n\n`;
+        md += `| ${headers.join(' | ')} |\n`;
+        md += `| ${headers.map(() => '---').join(' | ')} |\n`;
+        rows.forEach(row => { md += `| ${row.join(' | ')} |\n`; });
+        md += `\n_Las tasas no incluyen IVA. Consulta condiciones exactas con tu ejecutivo._`;
+        return { content: md, source: 'Requisitos de Crédito — Comparativa', botonesTemas: ['👥 Mujeres de Palabra', '🏪 Crédito Individual', '⚡ Conserva T Activa', '🏠 Tu Hogar con CONSERVA', '➕ Crédito Paralelo'] };
+    }
+
+    // Detect product
+    let key = null;
+    if (/mujeres|solidari|palabr/.test(q)) key = 'MAN_SOL';
+    else if (/t.?activa|tactiva/.test(q)) key = 'MAN_TAC';
+    else if (/individual|negocio/.test(q)) key = 'MAN_IND';
+    else if (/hogar|viviend/.test(q)) key = 'MAN_HOG';
+    else if (/paralel/.test(q)) key = 'MAN_PAR';
+
+    if (!key) {
+        return {
+            content: `📋 **Requisitos de Crédito**\n\nSelecciona el producto que te interesa:`,
+            source: 'Requisitos de Crédito',
+            botonesTemas: ['👥 Mujeres de Palabra', '🏪 Crédito Individual', '⚡ Conserva T Activa', '🏠 Tu Hogar con CONSERVA', '➕ Crédito Paralelo', '📊 Comparar todos los productos'],
+        };
+    }
+
+    const r = REQUISITOS_POR_PRODUCTO[key];
+
+    let md = `${r.emoji} **${r.nombre}**\n_${r.resumen}_\n\n`;
+    md += `### 💰 Datos del producto\n`;
+    md += `- **Montos:** ${formatMXN(r.montos.min)} a ${formatMXN(r.montos.max)}\n`;
+    md += `- **Plazos:** ${r.plazos}\n`;
+    md += `- **Tasa:** ${r.tasa}\n`;
+    md += `- **CAT:** ${r.cat}\n`;
+    md += `- **Seguro:** ${r.seguro}\n`;
+    md += `- **Garantía:** ${r.garantia}\n\n`;
+
+    md += `### ✅ Requisitos personales\n`;
+    r.requisitos_personales.forEach(req => { md += `- ${req}\n`; });
+
+    if (r.requisitos_grupo.length > 0) {
+        md += `\n### 👥 Requisitos del grupo\n`;
+        r.requisitos_grupo.forEach(req => { md += `- ${req}\n`; });
+    }
+
+    md += `\n### 📄 Documentos necesarios\n`;
+    r.documentos.forEach(doc => { md += `- ${doc}\n`; });
+
+    if (r.restricciones.length > 0) {
+        md += `\n### ⛔ Restricciones\n`;
+        r.restricciones.forEach(res => { md += `- ${res}\n`; });
+    }
+
+    md += `\n### 📝 Proceso\n${r.proceso}`;
+    md += `\n\n### 🏛️ Autorización\n${r.autorizacion}`;
+
+    return {
+        content: md,
+        source: `Requisitos — ${r.nombre}`,
+        botonesTemas: ['📊 Comparar todos los productos', '🧮 Simular cuota de este crédito', 'Volver a Requisitos'],
     };
 }

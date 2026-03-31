@@ -116,11 +116,15 @@ export function renderMenu(onSelect) {
 export function renderRibbon(onSelect) {
     const modules = [
         { code: 'MOD-CON-001', name: 'Conócenos', id: 'CON' },
-        { code: 'MOD-MAN-002', name: 'Manuales Institucionales', id: 'MAN' },
-        { code: 'MOD-VIA-006', name: 'Política de Viáticos', id: 'VIA' },
-        { code: 'MAN-CAJ', name: 'Manual de Caja Chica', id: 'CAJA' },
-        { code: 'MOD-AUD-005', name: 'Auditoría Interna', id: 'AUD' },
-        { code: 'MOD-SAN-007', name: 'Matriz de Sanciones', id: 'SAN' },
+        { code: 'MOD-MAN-002', name: 'Manuales', id: 'MAN' },
+        { code: 'MOD-REQ-003', name: 'Requisitos', id: 'REQ' },
+        { code: 'MOD-CALC-004', name: 'Calculadora', id: 'CALC' },
+        { code: 'MOD-VIA-006', name: 'Viáticos', id: 'VIA' },
+        { code: 'MAN-CAJ', name: 'Caja Chica', id: 'CAJA' },
+        { code: 'MOD-SAN-007', name: 'Sanciones', id: 'SAN' },
+        { code: 'MOD-GLO-008', name: 'Glosario', id: 'GLOSARIO' },
+        { code: 'MOD-AUD-005', name: 'Auditoría', id: 'AUD' },
+        { code: 'MOD-HIST-009', name: 'Mi Historial', id: 'HIST' },
     ];
     const ribbon = document.getElementById('module-ribbon-top');
     const row = document.getElementById('ribbon-row-top');

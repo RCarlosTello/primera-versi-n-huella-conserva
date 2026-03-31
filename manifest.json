@@ -1,15 +1,43 @@
 {
-  "name": "Huella Conserva Asistente",
+  "name": "Huella Conserva — Asistente Institucional",
   "short_name": "Huella",
-  "start_url": "./index.html",
+  "description": "Ecosistema digital de información institucional de Grupo CONSERVA",
+  "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
+  "orientation": "portrait-primary",
+  "background_color": "#0d2818",
   "theme_color": "#0d2818",
+  "lang": "es",
+  "scope": "/",
+  "categories": ["business", "productivity"],
   "icons": [
     {
       "src": "huella_conserva.jpeg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "huella_conserva.jpeg",
       "sizes": "512x512",
-      "type": "image/jpeg"
+      "type": "image/jpeg",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Caja Chica",
+      "short_name": "Caja",
+      "description": "Consultar Manual de Caja Chica",
+      "url": "/?module=CAJA",
+      "icons": [{ "src": "huella_conserva.jpeg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Viáticos",
+      "short_name": "Viáticos",
+      "description": "Consultar Política de Viáticos",
+      "url": "/?module=VIA",
+      "icons": [{ "src": "huella_conserva.jpeg", "sizes": "96x96" }]
     }
   ]
 }

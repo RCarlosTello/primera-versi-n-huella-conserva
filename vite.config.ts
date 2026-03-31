@@ -12,9 +12,19 @@ export default defineConfig({
       registerType: 'autoUpdate',
       injectRegister: 'auto',
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,json,jpeg,xlsm}'],
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,jpeg,xlsm}'],
         cleanupOutdatedCaches: true,
         maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
+        runtimeCaching: [
+          {
+            urlPattern: /\/knowledge\/.+\.json$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'huella-knowledge-v1',
+              expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 30 },
+            },
+          },
+        ],
       },
       manifest: {
         name: 'Huella Conserva Asistente Institucional',
