@@ -217,6 +217,65 @@ export function renderFileAttachment(filename, url, description) {
 export function showTyping() { typingEl.classList.remove('hidden'); messagesEl.scrollTop = messagesEl.scrollHeight; }
 export function hideTyping() { typingEl.classList.add('hidden'); }
 export function setBreadcrumb(text) { breadcrumb.textContent = text; }
+
+// ── Streaming bubble para CONSERVA-IA ────────────────────────────
+
+/**
+ * Crea un bubble de respuesta vacío que se irá llenando token a token.
+ * @returns {{ wrap: HTMLElement, bubble: HTMLElement }}
+ */
+export function createStreamingBubble() {
+    const wrap = document.createElement('div');
+    wrap.className = 'msg bot streaming';
+    const avatar = document.createElement('div');
+    avatar.className = 'msg-avatar';
+    avatar.textContent = '🌿';
+    const bubble = document.createElement('div');
+    bubble.className = 'msg-bubble';
+    // Cursor animado mientras se genera
+    bubble.innerHTML = '<span class="streaming-cursor">▊</span>';
+    wrap.appendChild(avatar);
+    wrap.appendChild(bubble);
+    messagesEl.appendChild(wrap);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+    return { wrap, bubble };
+}
+
+/**
+ * Agrega un token al bubble de streaming en tiempo real.
+ * @param {HTMLElement} bubble
+ * @param {string} token
+ */
+export function appendStreamToken(bubble, token) {
+    const cursor = bubble.querySelector('.streaming-cursor');
+    if (cursor) {
+        cursor.insertAdjacentText('beforebegin', token);
+    } else {
+        bubble.appendChild(document.createTextNode(token));
+    }
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+/**
+ * Finaliza el bubble de streaming: convierte el texto acumulado a HTML renderizado.
+ * @param {HTMLElement} wrap
+ * @param {HTMLElement} bubble
+ * @param {string|null} source  Texto de fuente para la cita
+ */
+export function finalizeStreamingBubble(wrap, bubble, source = null) {
+    const cursor = bubble.querySelector('.streaming-cursor');
+    if (cursor) cursor.remove();
+    wrap.classList.remove('streaming');
+    const rawText = bubble.textContent || bubble.innerText || '';
+    bubble.innerHTML = markdownToHtml(rawText);
+    if (source) {
+        const cite = document.createElement('div');
+        cite.className = 'source-citation';
+        cite.innerHTML = `📄 <strong>Fuente:</strong> ${markdownToHtml(source)}`;
+        bubble.appendChild(cite);
+    }
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+}
 export function getBreadcrumb() { return breadcrumb.textContent; }
 
 export function setModBtnActive(id) {

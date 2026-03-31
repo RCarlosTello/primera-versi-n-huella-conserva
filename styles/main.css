@@ -3216,3 +3216,132 @@ textarea:focus-visible {
    RIBBONS + CHIPS — 10 módulos
    ══════════════════════════════════════════════════════════════ */
 #ribbon-row-top { flex-wrap: wrap; gap: 6px; }
+
+/* ══════════════════════════════════════════════════════════════
+   CONSERVA-IA — STREAMING BUBBLE + LOADING OVERLAY
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── Cursor parpadeante mientras genera ─────────────────────── */
+.streaming-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  background: var(--accent, #4cae1d);
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  animation: blink-cursor 0.7s step-end infinite;
+}
+@keyframes blink-cursor {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+/* Bubble con animación de entrada suave mientras llega contenido */
+.msg.bot.streaming .msg-bubble {
+  border-left: 2px solid var(--accent, #4cae1d);
+  padding-left: 0.75rem;
+  transition: border-color 0.3s;
+}
+.msg.bot.streaming .msg-bubble::after {
+  content: '';
+}
+
+/* ── Badge IA en sidebar ─────────────────────────────────────── */
+.ia-status {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 999px;
+  letter-spacing: 0.01em;
+  transition: background 0.4s, color 0.4s;
+}
+.ia-status.loading {
+  background: rgba(255, 193, 7, 0.18);
+  color: #b8860b;
+}
+.ia-status.ready {
+  background: rgba(76, 174, 29, 0.18);
+  color: #2e7d13;
+}
+.ia-status.error {
+  background: rgba(192, 57, 43, 0.15);
+  color: #922b21;
+}
+[data-theme="dark"] .ia-status.loading { background: rgba(255,193,7,0.12); color: #f0c040; }
+[data-theme="dark"] .ia-status.ready   { background: rgba(76,174,29,0.15); color: #7dce4a; }
+[data-theme="dark"] .ia-status.error   { background: rgba(192,57,43,0.12); color: #e05c4a; }
+
+/* ── Overlay de descarga del modelo ─────────────────────────── */
+#ia-loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+#ia-loading-overlay.hidden { display: none; }
+
+.ia-loading-card {
+  background: var(--surface, #fff);
+  border-radius: 20px;
+  padding: 2.5rem 2rem;
+  max-width: 420px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.22);
+  border: 1px solid rgba(76,174,29,0.15);
+}
+.ia-loading-icon {
+  font-size: 3rem;
+  margin-bottom: 0.75rem;
+}
+.ia-loading-card h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: var(--text-main, #1a2e1a);
+}
+.ia-loading-card p {
+  font-size: 0.9rem;
+  color: var(--text-sub, #4a6a4a);
+  margin-bottom: 0.5rem;
+  line-height: 1.5;
+}
+.ia-loading-note {
+  font-size: 0.8rem !important;
+  color: var(--text-muted, #7a9a7a) !important;
+  margin-bottom: 1.25rem !important;
+}
+.ia-progress-bar {
+  height: 8px;
+  background: rgba(76,174,29,0.15);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+.ia-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4cae1d, #68c32b);
+  border-radius: 999px;
+  width: 0%;
+  transition: width 0.4s ease;
+}
+.ia-progress-text {
+  font-size: 0.78rem;
+  color: var(--text-muted, #7a9a7a);
+  font-weight: 500;
+}
+
+[data-theme="dark"] .ia-loading-card {
+  background: #1a2e1a;
+  border-color: rgba(76,174,29,0.25);
+}
+[data-theme="dark"] .ia-loading-card h3 { color: #d4f5d4; }
+[data-theme="dark"] .ia-loading-card p  { color: #90b890; }
+[data-theme="dark"] .ia-loading-note    { color: #6a8a6a !important; }
+[data-theme="dark"] .ia-progress-bar    { background: rgba(76,174,29,0.1); }
+[data-theme="dark"] .ia-progress-text   { color: #6a8a6a; }

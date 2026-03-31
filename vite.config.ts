@@ -6,6 +6,10 @@ export default defineConfig({
     target: 'esnext',
     outDir: 'dist',
   },
+  // Workers ES module format required for @huggingface/transformers in llm-worker.js
+  worker: {
+    format: 'es',
+  },
   plugins: [
     VitePWA({
       strategies: 'generateSW',
