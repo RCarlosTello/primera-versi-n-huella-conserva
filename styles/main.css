@@ -3218,130 +3218,124 @@ textarea:focus-visible {
 #ribbon-row-top { flex-wrap: wrap; gap: 6px; }
 
 /* ══════════════════════════════════════════════════════════════
-   CONSERVA-IA — STREAMING BUBBLE + LOADING OVERLAY
+   FAB SPEED DIAL — Botón flotante de acción con menú vertical
+   Material Design · Posicionado en esquina inferior derecha
    ══════════════════════════════════════════════════════════════ */
 
-/* ── Cursor parpadeante mientras genera ─────────────────────── */
-.streaming-cursor {
-  display: inline-block;
-  width: 2px;
-  height: 1em;
-  background: var(--accent, #4cae1d);
-  margin-left: 2px;
-  vertical-align: text-bottom;
-  animation: blink-cursor 0.7s step-end infinite;
-}
-@keyframes blink-cursor {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0; }
-}
-
-/* Bubble con animación de entrada suave mientras llega contenido */
-.msg.bot.streaming .msg-bubble {
-  border-left: 2px solid var(--accent, #4cae1d);
-  padding-left: 0.75rem;
-  transition: border-color 0.3s;
-}
-.msg.bot.streaming .msg-bubble::after {
-  content: '';
-}
-
-/* ── Badge IA en sidebar ─────────────────────────────────────── */
-.ia-status {
-  font-size: 0.72rem;
-  font-weight: 600;
-  padding: 2px 6px;
-  border-radius: 999px;
-  letter-spacing: 0.01em;
-  transition: background 0.4s, color 0.4s;
-}
-.ia-status.loading {
-  background: rgba(255, 193, 7, 0.18);
-  color: #b8860b;
-}
-.ia-status.ready {
-  background: rgba(76, 174, 29, 0.18);
-  color: #2e7d13;
-}
-.ia-status.error {
-  background: rgba(192, 57, 43, 0.15);
-  color: #922b21;
-}
-[data-theme="dark"] .ia-status.loading { background: rgba(255,193,7,0.12); color: #f0c040; }
-[data-theme="dark"] .ia-status.ready   { background: rgba(76,174,29,0.15); color: #7dce4a; }
-[data-theme="dark"] .ia-status.error   { background: rgba(192,57,43,0.12); color: #e05c4a; }
-
-/* ── Overlay de descarga del modelo ─────────────────────────── */
-#ia-loading-overlay {
+/* Contenedor principal en la esquina de la pantalla */
+.fab-container {
   position: fixed;
-  inset: 0;
-  z-index: 9998;
-  background: rgba(0, 0, 0, 0.55);
-  backdrop-filter: blur(6px);
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  flex-direction: column-reverse; /* Los elementos crecen hacia arriba */
+  align-items: flex-end;
+  gap: 14px;
+  z-index: 9999;
+  font-family: 'Plus Jakarta Sans', 'Segoe UI', Roboto, sans-serif;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* El botón circular principal */
+.fab-main {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: #004b49;
+  color: #ffffff;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1.5rem;
-}
-#ia-loading-overlay.hidden { display: none; }
-
-.ia-loading-card {
-  background: var(--surface, #fff);
-  border-radius: 20px;
-  padding: 2.5rem 2rem;
-  max-width: 420px;
-  width: 100%;
-  text-align: center;
-  box-shadow: 0 32px 80px rgba(0,0,0,0.22);
-  border: 1px solid rgba(76,174,29,0.15);
-}
-.ia-loading-icon {
-  font-size: 3rem;
-  margin-bottom: 0.75rem;
-}
-.ia-loading-card h3 {
-  font-size: 1.25rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-  color: var(--text-main, #1a2e1a);
-}
-.ia-loading-card p {
-  font-size: 0.9rem;
-  color: var(--text-sub, #4a6a4a);
-  margin-bottom: 0.5rem;
-  line-height: 1.5;
-}
-.ia-loading-note {
-  font-size: 0.8rem !important;
-  color: var(--text-muted, #7a9a7a) !important;
-  margin-bottom: 1.25rem !important;
-}
-.ia-progress-bar {
-  height: 8px;
-  background: rgba(76,174,29,0.15);
-  border-radius: 999px;
-  overflow: hidden;
-  margin-bottom: 0.5rem;
-}
-.ia-progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #4cae1d, #68c32b);
-  border-radius: 999px;
-  width: 0%;
-  transition: width 0.4s ease;
-}
-.ia-progress-text {
-  font-size: 0.78rem;
-  color: var(--text-muted, #7a9a7a);
-  font-weight: 500;
+  font-size: 24px;
+  font-weight: bold;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+  flex-shrink: 0;
 }
 
-[data-theme="dark"] .ia-loading-card {
-  background: #1a2e1a;
-  border-color: rgba(76,174,29,0.25);
+.fab-main:hover {
+  transform: scale(1.05);
+  background-color: #006360;
 }
-[data-theme="dark"] .ia-loading-card h3 { color: #d4f5d4; }
-[data-theme="dark"] .ia-loading-card p  { color: #90b890; }
-[data-theme="dark"] .ia-loading-note    { color: #6a8a6a !important; }
-[data-theme="dark"] .ia-progress-bar    { background: rgba(76,174,29,0.1); }
-[data-theme="dark"] .ia-progress-text   { color: #6a8a6a; }
+
+/* Contenedor de las opciones flotantes */
+.fab-options {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 10px;
+  align-items: flex-end;
+  /* Animación de entrada automática al aparecer */
+  animation: expandirMenu 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+/* Estilo de cada burbuja de opción */
+.fab-option-item {
+  background-color: #ffffff;
+  color: #1a1a1a;
+  border: 1px solid #e0e0e0;
+  padding: 10px 18px;
+  border-radius: 24px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+/* Efecto hover en las opciones */
+.fab-option-item:hover {
+  background-color: #f5f5f5;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
+  transform: translateX(-4px);
+}
+
+/* Animación de apertura del menú Speed Dial */
+@keyframes expandirMenu {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Estado oculto — destrucción suave al cerrar */
+.fab-hidden {
+  opacity: 0 !important;
+  pointer-events: none;
+  transform: translateY(20px) scale(0.95);
+}
+
+/* Adaptación para temas oscuros */
+[data-theme='dark'] .fab-option-item {
+  background-color: #1e2a22;
+  color: #ddf0e2;
+  border-color: rgba(74, 156, 106, 0.2);
+}
+
+[data-theme='dark'] .fab-option-item:hover {
+  background-color: #243028;
+}
+
+/* Adaptación para móviles pequeños */
+@media (max-width: 480px) {
+  .fab-container {
+    bottom: 16px;
+    right: 16px;
+  }
+  .fab-main {
+    width: 50px;
+    height: 50px;
+    font-size: 20px;
+  }
+  .fab-option-item {
+    font-size: 12px;
+    padding: 8px 14px;
+  }
+}
+
