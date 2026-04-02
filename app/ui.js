@@ -15,11 +15,21 @@ export function clearMessages() {
     }
 }
 
+/** Colapsa saltos excesivos y espacios finales de línea (evita párrafos “inflados” en el chat). */
+function normalizeChatWhitespace(raw) {
+    if (!raw || typeof raw !== 'string') return '';
+    return raw
+        .replace(/\r\n/g, '\n')
+        .replace(/[ \t]+\n/g, '\n')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim();
+}
+
 // ── marcado simple: **negrita**, *cursiva*, \n → <br> ──────────
 export function markdownToHtml(text) {
     if (!text) return '';
 
-    let processed = text;
+    let processed = normalizeChatWhitespace(text);
 
     // Patrón para detectar la "Respuesta Destacada" v2
     // Coincide con 💬 seguido de texto, capturando hasta el final o una cita/fuente
@@ -49,9 +59,11 @@ export function markdownToHtml(text) {
                         <div class="answer-item-text-v2">${markdownToHtmlSimple(cleanLine)}</div>
                     </li>
                 `;
-            }).join('');
+            })
+            .filter(Boolean)
+            .join('');
 
-        const finalBody = listItems 
+        const finalBody = listItems
           ? `<ul class="check-list-v2">${listItems}</ul>`
           : markdownToHtmlSimple(bodyTextRaw);
 
@@ -84,15 +96,24 @@ export function markdownToHtml(text) {
 // Función base de markdown para evitar recursión infinita
 function markdownToHtmlSimple(text) {
     if (!text) return '';
+    let processed = normalizeChatWhitespace(String(text));
     const protectedTags = [];
-    let processed = text.replace(/<(\/?(?:div|details|summary|ul|li|b|a|span|i)[^>]*)>/gi, (match) => {
+    // Conservar HTML seguro ya generado (p. ej. <strong> del LLM) y bloques propios
+    processed = processed.replace(/<(\/?(?:div|details|summary|ul|ol|li|p|strong|em|b|i|a|span|br|code|blockquote)[^>]*)>/gi, (match) => {
         const placeholder = `__HTML_TAG_${protectedTags.length}__`;
         protectedTags.push(match);
         return placeholder;
     });
     processed = processed.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     processed = processed.replace(/^&gt; (.*$)/gm, '<blockquote>$1</blockquote>');
-    processed = processed.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\*(.+?)\*/g, '<em>$1</em>').replace(/`(.+?)`/g, '<code>$1</code>').replace(/\n- /g, '\n• ').replace(/\n/g, '<br>');
+    processed = processed
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.+?)\*/g, '<em>$1</em>')
+        .replace(/`(.+?)`/g, '<code>$1</code>')
+        .replace(/\n- /g, '\n• ');
+    processed = processed.replace(/\n{2,}/g, '<br class="para-gap">');
+    processed = processed.replace(/\n/g, '<br>');
+    processed = processed.replace(/(<br[^>]*>\s*){3,}/gi, '<br><br>');
     protectedTags.forEach((tag, i) => { processed = processed.replace(`__HTML_TAG_${i}__`, tag); });
     return processed;
 }

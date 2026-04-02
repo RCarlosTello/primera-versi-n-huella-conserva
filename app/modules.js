@@ -39,7 +39,17 @@ const CON_INFO = {
     mantra: `Desarrollo y Bienestar`,
     valores: `Liderazgo, Enfoque a Logros, Compromiso, Lealtad, Colaborador y Formador, Sentido Humano, Resiliencia.`,
     dominio: `@grupoconserva.mx | Sector microfinanciero | CONSERVA SOFOM ENR`,
-    historia: `📅 **Nuestra Historia — Grupo CONSERVA**\n\n🌱 **1999:** Nacimos como **CONSERVA** con la finalidad de apoyar a las mujeres marginadas del estado de Chiapas a través de proyectos productivos de desarrollo social.\n\n💳 **2000:** Incursionamos en los **microcréditos**, buscando nuevas formas de apoyar a las microempresarias y jefas de familia.\n\n🚀 **Expansión y Crecimiento:**\n- **2003:** Ampliamos nuestros servicios hacia el estado de **Tabasco**.\n- **2008:** Abrimos sucursales en el estado de **Yucatán**.\n- **2016:** Iniciamos operaciones en **Puebla**.\n- **2019:** Llegamos a **Campeche**.\n- **2022:** Iniciamos operaciones en el **Estado de México**.\n\n👥 **Actualidad:** Hoy miles de personas se benefician con Conserva, gracias a un equipo que ofrece servicios con **calidad, respeto y calidez**, ganando reconocimiento local e internacional.\n\n🏆 **Compromiso Social:** Desde el año **2010** contamos con el distintivo de **Empresa Socialmente Responsable (ESR)**, el cual trabajamos año con año para mantener.`,
+    historia: `📅 **Nuestra Historia — Grupo CONSERVA**
+🌱 **1999:** Nacimos como **CONSERVA** con la finalidad de apoyar a las mujeres marginadas del estado de Chiapas a través de proyectos productivos de desarrollo social.
+💳 **2000:** Incursionamos en los **microcréditos**, buscando nuevas formas de apoyar a las microempresarias y jefas de familia.
+🚀 **Expansión y Crecimiento:**
+- **2003:** Ampliamos nuestros servicios hacia el estado de **Tabasco**.
+- **2008:** Abrimos sucursales en el estado de **Yucatán**.
+- **2016:** Iniciamos operaciones en **Puebla**.
+- **2019:** Llegamos a **Campeche**.
+- **2022:** Iniciamos operaciones en el **Estado de México**.
+👥 **Actualidad:** Hoy miles de personas se benefician con Conserva, gracias a un equipo que ofrece servicios con **calidad, respeto y calidez**, ganando reconocimiento local e internacional.
+🏆 **Compromiso Social:** Desde el año **2010** contamos con el distintivo de **Empresa Socialmente Responsable (ESR)**, el cual trabajamos año con año para mantener.`,
 };
 
 export function handleCON(query) {

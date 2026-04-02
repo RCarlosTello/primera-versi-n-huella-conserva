@@ -15,6 +15,7 @@ import {
 import { lookupCollaborator, SessionManager, checkIsBirthday } from './auth.js';
 import { crossModuleSearch, deepSearch, deepSearchAllModules, isOnline, semanticSearch } from './search.js';
 import { generate, isLLMReady } from './llm.js';
+import { retrieve, formatContext } from './rag.js';
 import { FAQS } from '../data/faqs.js';
 
 const FAQS_FOR_SEARCH = { ...FAQS };
@@ -299,29 +300,40 @@ export class ChatEngine {
     async _resolveWithRAG(input) {
         showTyping();
         try {
-            // 1. Detectar si la pregunta ya apunta a un documento específico
-            const manualDetectado = detectManualDesdeQuery(input);
-            let contextResults = [];
-            
-            if (manualDetectado && manualDetectado.linea) {
-                // Foco estricto en el documento mencionado
-                const res = await deepSearch(input, manualDetectado.linea.id);
-                if (res) contextResults = [{ label: manualDetectado.linea.label, preview: res.text }];
-            } else {
-                // Búsqueda global si no hay manual específico
-                contextResults = await deepSearchAllModules(input);
+            // 1. Recuperación RAG unificada (FAQs, manuales BM25, glosario, cuestionarios, requisitos)
+            const chunks = await retrieve(input, 8);
+            let contextText = formatContext(chunks);
+
+            // 2. Refuerzo: si el índice RAG es pobre, añadir deep search en manuales
+            const topScore = chunks[0]?.score ?? 0;
+            if (!chunks.length || topScore < 0.5) {
+                const manualDetectado = detectManualDesdeQuery(input);
+                let extra = [];
+                if (manualDetectado?.linea) {
+                    const res = await deepSearch(input, manualDetectado.linea.id);
+                    if (res?.text) extra.push(`[${manualDetectado.linea.label}] ${res.text}`);
+                } else {
+                    const deep = await deepSearchAllModules(input);
+                    extra = (deep || []).slice(0, 3).map(r => `[${r.label}] ${r.preview}`);
+                }
+                if (extra.length) {
+                    contextText = [contextText, extra.join('\n\n')].filter(Boolean).join('\n\n---\n\n');
+                }
             }
 
-            const contextText = contextResults.map(r => `[${r.label}] ${r.preview}`).join('\n\n');
-
-            // 2. Generar respuesta con LLM local
+            // 3. Cerebro lógico local: JSON con RESPONDER | DESAMBIGUAR | REPLANTEAR (doble validación en SYSTEM_PROMPT)
             let fullResponse = '';
             await generate(input, contextText, [], (token) => {
                 fullResponse += token;
             });
 
-            // 3. Limpiar JSON de posibles markdown fences
-            const jsonText = fullResponse.replace(/```json|```/g, '').trim();
+            // 4. Limpiar JSON de posibles markdown fences o texto previo
+            let jsonText = fullResponse.replace(/```json\s*/gi, '').replace(/```/g, '').trim();
+            const jsonStart = jsonText.indexOf('{');
+            const jsonEnd = jsonText.lastIndexOf('}');
+            if (jsonStart >= 0 && jsonEnd > jsonStart) {
+                jsonText = jsonText.slice(jsonStart, jsonEnd + 1);
+            }
             const result = JSON.parse(jsonText);
 
             // 4. Actuar según la decisión del cerebro lógico
@@ -706,7 +718,18 @@ ${best.preview}`;
 
         } else {
             const found = await this._crossModuleFallback(input);
-            if (!found) this._showNoResult(input);
+            if (!found) {
+                if (isLLMReady()) {
+                    try {
+                        await this._resolveWithRAG(input);
+                    } catch (e) {
+                        console.warn('[RAG] fallback automático:', e);
+                        this._showNoResult(input);
+                    }
+                } else {
+                    this._showNoResult(input);
+                }
+            }
         }
     }
 }
