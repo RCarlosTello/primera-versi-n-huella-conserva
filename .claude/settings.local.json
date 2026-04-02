@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c \"import json; data = json.load\\(open\\(''dist/knowledge/idx_man_sol.json''\\)\\); print\\(''Keys:'', list\\(data.keys\\(\\)\\)[:10]\\); print\\(''Index keys sample:'', list\\(data.get\\(''idx'', {}\\).keys\\(\\)\\)[:5] if ''idx'' in data else ''No idx''\\); print\\(''Docs count:'', len\\(data.get\\(''docs'', []\\)\\)\\)\")",
+      "Bash(npm install:*)",
+      "Bash(node -e \"const p = require\\(''./node_modules/@huggingface/transformers/package.json''\\); console.log\\(p.version\\)\")",
+      "Bash(python -c \":*)",
+      "Bash(find C:/hc-build-local/version2app -name idx_*.json)"
+    ]
+  }
+}

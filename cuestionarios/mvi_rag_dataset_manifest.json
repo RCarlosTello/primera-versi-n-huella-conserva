@@ -1,0 +1,31 @@
+{
+  "id_documento": "manual_viaticos_2026",
+  "titulo_documento": "Manual de Políticas y Procedimientos de Viáticos",
+  "prefijo_fuente": "MVI",
+  "total_registros": 20301,
+  "total_temas_unicos": 293,
+  "total_grupos_equivalencia": 293,
+  "bloques": [
+    {
+      "archivo": "mvi_rag_dataset_bloque_01.jsonl",
+      "registros": 5000
+    },
+    {
+      "archivo": "mvi_rag_dataset_bloque_02.jsonl",
+      "registros": 5000
+    },
+    {
+      "archivo": "mvi_rag_dataset_bloque_03.jsonl",
+      "registros": 5000
+    },
+    {
+      "archivo": "mvi_rag_dataset_bloque_04.jsonl",
+      "registros": 5000
+    },
+    {
+      "archivo": "mvi_rag_dataset_bloque_05.jsonl",
+      "registros": 301
+    }
+  ],
+  "archivo_master": "mvi_rag_dataset_master_20301.jsonl"
+}

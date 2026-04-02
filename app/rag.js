@@ -10,6 +10,7 @@
  *  2. FAQs de todos los módulos
  *  3. Glosario institucional
  *  4. Requisitos por producto de crédito
+ *  5. Cuestionarios institucionales (JSON lazy: public/knowledge/rag_cuestionarios_compact.json)
  */
 
 import { tokenize, expandQuery, normalize } from './search.js';
@@ -22,6 +23,85 @@ const _indexCache = {};
 
 // ── Corpus estático (FAQs + Glosario + Requisitos) ───────────────
 let _staticCorpus = null;
+
+// ── Cuestionarios (fetch una vez; df precomputado para scoring) ───
+let _cuestionariosBundle = null;
+
+async function _getCuestionariosBundle() {
+    if (_cuestionariosBundle) return _cuestionariosBundle;
+    try {
+        const res = await fetch('/knowledge/rag_cuestionarios_compact.json');
+        if (!res.ok) {
+            _cuestionariosBundle = { items: [], df: {}, N: 1, byToken: {} };
+            return _cuestionariosBundle;
+        }
+        const data = await res.json();
+        const items = Array.isArray(data.items) ? data.items : [];
+        const N = Math.max(items.length, 1);
+        const df = {};
+        /** @type {Record<string, number[]>} */
+        const byToken = {};
+        for (let i = 0; i < items.length; i++) {
+            const toks = new Set(tokenize(items[i].text || ''));
+            for (const t of toks) {
+                df[t] = (df[t] || 0) + 1;
+                if (!byToken[t]) byToken[t] = [];
+                byToken[t].push(i);
+            }
+        }
+        _cuestionariosBundle = { items, df, N, byToken };
+        return _cuestionariosBundle;
+    } catch {
+        _cuestionariosBundle = { items: [], df: {}, N: 1, byToken: {} };
+        return _cuestionariosBundle;
+    }
+}
+
+function _scoreCuestionarios(bundle, queryTokens, query, topK = 4) {
+    if (!bundle.items.length) return [];
+    const { items, df, N, byToken } = bundle;
+    const qNorm = normalize(query);
+
+    const candIdx = new Set();
+    for (const token of queryTokens) {
+        const arr = byToken[token];
+        if (arr) for (const i of arr) candIdx.add(i);
+    }
+
+    let indices = [...candIdx];
+    if (!indices.length && qNorm.length >= 8) {
+        for (let i = 0; i < items.length; i++) {
+            if ((items[i].text || '').includes(qNorm)) candIdx.add(i);
+        }
+        indices = [...candIdx];
+    }
+    if (!indices.length) return [];
+
+    const scored = [];
+    for (const i of indices) {
+        const doc = items[i];
+        let score = 0;
+        if (qNorm && doc.text.includes(qNorm)) score += 3;
+        for (const token of queryTokens) {
+            if (!doc.text.includes(token)) continue;
+            const dfc = df[token] || 1;
+            const idf = Math.log((N + 1) / (dfc + 1)) + 1;
+            score += idf;
+        }
+        if (score > 0) {
+            scored.push({
+                id: doc.id,
+                answer: doc.a,
+                question: doc.q,
+                source: doc.source,
+                moduleId: doc.moduleId || undefined,
+                type: 'cuestionario',
+                score,
+            });
+        }
+    }
+    return scored.sort((a, b) => b.score - a.score).slice(0, topK);
+}
 
 const MODULE_LABELS = {
     MAN_SOL: 'Mujeres de Palabra',
@@ -202,6 +282,10 @@ export async function retrieve(query, topK = 6) {
     const tokens = tokenize(query);
     const expanded = expandQuery(tokens);
     const results = [];
+
+    const cuestBundle = await _getCuestionariosBundle();
+    const cuestHits = _scoreCuestionarios(cuestBundle, expanded, query, 4);
+    results.push(...cuestHits);
 
     // 1. Manuales — BM25 en índices de chunks reales
     for (const [modId, label] of Object.entries(MODULE_LABELS)) {

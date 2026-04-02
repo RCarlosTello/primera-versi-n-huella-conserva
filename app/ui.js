@@ -1,6 +1,7 @@
 /**
  * app/ui.js
  * Renderizado DOM del chat: mensajes, menú de módulos, bienvenida.
+ * v1.3 — FAB Speed Dial integrado para desambiguación de menú
  */
 
 const messagesEl = document.getElementById('messages-container');
@@ -16,6 +17,72 @@ export function clearMessages() {
 
 // ── marcado simple: **negrita**, *cursiva*, \n → <br> ──────────
 export function markdownToHtml(text) {
+    if (!text) return '';
+
+    let processed = text;
+
+    // Patrón para detectar la "Respuesta Destacada" v2
+    // Coincide con 💬 seguido de texto, capturando hasta el final o una cita/fuente
+    const highlightedMatch = processed.match(/💬\s*([\s\S]+?)(?=\s*\n&gt;|\s*\nFuente:|$)/);
+    
+    if (highlightedMatch) {
+        const fullMatch = highlightedMatch[0];
+        let content = highlightedMatch[1].trim();
+        
+        // Dividir por líneas. El primer renglón con texto será el Header.
+        const allLines = content.split('\n').map(l => l.trim());
+        const headerText = (allLines.find(l => l.length > 0) || '').replace(/<br>/g, '').replace(/^: /,'');
+        
+        // El resto es el cuerpo
+        const headerIdx = allLines.findIndex(l => l.length > 0);
+        const bodyLines = allLines.slice(headerIdx + 1);
+        const bodyTextRaw = bodyLines.join('\n').trim();
+
+        const listItems = bodyTextRaw
+            .split('\n')
+            .map(line => {
+                const cleanLine = line.trim().replace(/^[•\-\*]\s*/, '');
+                if (!cleanLine) return '';
+                return `
+                    <li>
+                        <span class="check-v2">✓</span>
+                        <div class="answer-item-text-v2">${markdownToHtmlSimple(cleanLine)}</div>
+                    </li>
+                `;
+            }).join('');
+
+        const finalBody = listItems 
+          ? `<ul class="check-list-v2">${listItems}</ul>`
+          : markdownToHtmlSimple(bodyTextRaw);
+
+        const highlightedHtml = `
+            <div class="blue-highlight-box-v2">
+                <div class="blue-highlight-header-v2">
+                    <span class="header-icon-v2">💬</span>
+                    <span>${headerText}</span>
+                </div>
+                <div class="blue-highlight-body-v2">
+                    ${finalBody}
+                </div>
+            </div>
+        `;
+        processed = processed.replace(fullMatch, highlightedHtml);
+    }
+
+    // Soporte para cuadros de advertencia ⚠️ (Warning Box v2)
+    processed = processed.replace(/⚠️\s*([\s\S]+?)(?=\s*\n&gt;|\s*\nFuente:|$)/g, (match, content) => {
+        return `
+            <div class="warning-box-v2">
+                ⚠️ ${markdownToHtmlSimple(content.trim())}
+            </div>
+        `;
+    });
+
+    return markdownToHtmlSimple(processed);
+}
+
+// Función base de markdown para evitar recursión infinita
+function markdownToHtmlSimple(text) {
     if (!text) return '';
     const protectedTags = [];
     let processed = text.replace(/<(\/?(?:div|details|summary|ul|li|b|a|span|i)[^>]*)>/gi, (match) => {
@@ -143,7 +210,7 @@ export function renderRibbon(onSelect) {
 }
 
 export function renderTopicButtons(topics, onSelect, promptText = null, sourceText = null) {
-    // 1. Render message text ONLY in chat bubble
+    // 1. Render prompt text as bot bubble if provided
     if (promptText) {
         const wrap = document.createElement('div');
         wrap.className = 'msg bot';
@@ -156,27 +223,16 @@ export function renderTopicButtons(topics, onSelect, promptText = null, sourceTe
         messagesEl.scrollTop = messagesEl.scrollHeight;
     }
     
-    // 2. Clear and Populate BOTTOM RIBBON (Orange box logic)
+    // 2. Ocultar el ribbon inferior — las opciones se muestran en el FAB Speed Dial
     const contextRibbon = document.getElementById('contextual-ribbon');
-    const ribbonRow = document.getElementById('ribbon-row-bottom');
-    if (!contextRibbon || !ribbonRow) return;
+    if (contextRibbon) contextRibbon.style.display = 'none';
 
-    ribbonRow.innerHTML = '';
-    contextRibbon.classList.add('visible');
-    
-    // Trigger "destello" (glow animation)
-    contextRibbon.classList.remove('glow-hint');
-    void contextRibbon.offsetWidth; // Trigger reflow
-    contextRibbon.classList.add('glow-hint');
-
-    topics.filter(t => !t.toLowerCase().includes('regresar')).forEach((t, i) => {
-        const btn = document.createElement('button');
-        btn.className = 'mc'; // Using .mc to match "pink" style as requested
-        btn.innerHTML = `${getIconHTML(t)} <span>${t}</span>`;
-        btn.addEventListener('click', () => {
-            onSelect((i + 1).toString(), t);
-        });
-        ribbonRow.appendChild(btn);
+    // 3. Mostrar opciones en FAB Speed Dial dentro del área de chat
+    const filtered = topics.filter(t => !t.toLowerCase().includes('regresar'));
+    renderFABSpeedDial(filtered, (text) => {
+        clearFABSpeedDial();
+        if (contextRibbon) contextRibbon.style.display = '';
+        onSelect('', text);
     });
 }
 
@@ -217,65 +273,6 @@ export function renderFileAttachment(filename, url, description) {
 export function showTyping() { typingEl.classList.remove('hidden'); messagesEl.scrollTop = messagesEl.scrollHeight; }
 export function hideTyping() { typingEl.classList.add('hidden'); }
 export function setBreadcrumb(text) { breadcrumb.textContent = text; }
-
-// ── Streaming bubble para CONSERVA-IA ────────────────────────────
-
-/**
- * Crea un bubble de respuesta vacío que se irá llenando token a token.
- * @returns {{ wrap: HTMLElement, bubble: HTMLElement }}
- */
-export function createStreamingBubble() {
-    const wrap = document.createElement('div');
-    wrap.className = 'msg bot streaming';
-    const avatar = document.createElement('div');
-    avatar.className = 'msg-avatar';
-    avatar.textContent = '🌿';
-    const bubble = document.createElement('div');
-    bubble.className = 'msg-bubble';
-    // Cursor animado mientras se genera
-    bubble.innerHTML = '<span class="streaming-cursor">▊</span>';
-    wrap.appendChild(avatar);
-    wrap.appendChild(bubble);
-    messagesEl.appendChild(wrap);
-    messagesEl.scrollTop = messagesEl.scrollHeight;
-    return { wrap, bubble };
-}
-
-/**
- * Agrega un token al bubble de streaming en tiempo real.
- * @param {HTMLElement} bubble
- * @param {string} token
- */
-export function appendStreamToken(bubble, token) {
-    const cursor = bubble.querySelector('.streaming-cursor');
-    if (cursor) {
-        cursor.insertAdjacentText('beforebegin', token);
-    } else {
-        bubble.appendChild(document.createTextNode(token));
-    }
-    messagesEl.scrollTop = messagesEl.scrollHeight;
-}
-
-/**
- * Finaliza el bubble de streaming: convierte el texto acumulado a HTML renderizado.
- * @param {HTMLElement} wrap
- * @param {HTMLElement} bubble
- * @param {string|null} source  Texto de fuente para la cita
- */
-export function finalizeStreamingBubble(wrap, bubble, source = null) {
-    const cursor = bubble.querySelector('.streaming-cursor');
-    if (cursor) cursor.remove();
-    wrap.classList.remove('streaming');
-    const rawText = bubble.textContent || bubble.innerText || '';
-    bubble.innerHTML = markdownToHtml(rawText);
-    if (source) {
-        const cite = document.createElement('div');
-        cite.className = 'source-citation';
-        cite.innerHTML = `📄 <strong>Fuente:</strong> ${markdownToHtml(source)}`;
-        bubble.appendChild(cite);
-    }
-    messagesEl.scrollTop = messagesEl.scrollHeight;
-}
 export function getBreadcrumb() { return breadcrumb.textContent; }
 
 export function setModBtnActive(id) {
@@ -309,4 +306,77 @@ export function updateSessionTimer(remainMs) {
     const min = Math.floor(remainMs / 60000);
     const sec = Math.floor((remainMs % 60000) / 1000);
     document.getElementById('session-timer').textContent = `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+}
+
+// ── FAB Speed Dial — Botón flotante de desambiguación ────────────
+// Se posiciona dentro del área de mensajes, esquina inferior derecha.
+
+/** Elimina el FAB Speed Dial si existe */
+export function clearFABSpeedDial() {
+    const existing = document.getElementById('fab-speed-dial');
+    if (existing) {
+        existing.classList.add('fab-hidden');
+        setTimeout(() => existing.remove(), 350);
+    }
+}
+
+/**
+ * Renderiza un FAB Speed Dial con opciones tipo pill.
+ * @param {string[]} options — Etiquetas de las opciones
+ * @param {function} onSelect — Callback con el texto seleccionado
+ */
+export function renderFABSpeedDial(options, onSelect) {
+    // Limpiar FAB previo
+    clearFABSpeedDial();
+
+    // Contenedor principal — fijo dentro del viewport, pegado a la zona del chat
+    const container = document.createElement('div');
+    container.id = 'fab-speed-dial';
+    container.className = 'fab-container';
+    container.setAttribute('role', 'menu');
+    container.setAttribute('aria-label', 'Opciones de consulta');
+
+    // Botón principal "+" con animación de pulso
+    const mainBtn = document.createElement('button');
+    mainBtn.className = 'fab-main fab-pulse';
+    mainBtn.setAttribute('aria-label', 'Selecciona una opción');
+    mainBtn.setAttribute('aria-expanded', 'true');
+    mainBtn.setAttribute('aria-controls', 'fab-options-list');
+    mainBtn.innerHTML = '+';
+
+    // Contenedor de opciones (se despliegan hacia arriba)
+    const optionsWrap = document.createElement('div');
+    optionsWrap.className = 'fab-options';
+    optionsWrap.id = 'fab-options-list';
+
+    options.forEach((label) => {
+        const btn = document.createElement('button');
+        btn.className = 'fab-option-item';
+        btn.setAttribute('role', 'menuitem');
+        btn.textContent = label;
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            onSelect(label);
+        });
+        optionsWrap.appendChild(btn);
+    });
+
+    // Toggle: clic en "+" oculta/muestra opciones
+    let open = true;
+    mainBtn.addEventListener('click', () => {
+        open = !open;
+        optionsWrap.style.display = open ? '' : 'none';
+        mainBtn.textContent = open ? '+' : '✕';
+        mainBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+
+    // Orden: el botón "+" va primero (aparece abajo por column-reverse)
+    container.appendChild(optionsWrap);
+    container.appendChild(mainBtn);
+
+    // Insertar al final del body para que quede sobre todo
+    document.body.appendChild(container);
+
+    // Scroll al fondo del chat para dar contexto visual
+    if (messagesEl) messagesEl.scrollTop = messagesEl.scrollHeight;
 }

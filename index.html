@@ -377,10 +377,9 @@
       </div>
       
       <div id="system-status">
-        <div class="status-row"><span class="status-label">Sistema</span><span class="status-val">v2.0</span></div>
+        <div class="status-row"><span class="status-label">Sistema</span><span class="status-val">v1.2</span></div>
         <div class="status-row"><span class="status-label">Año</span><span class="status-val">2026</span></div>
         <div class="status-row"><span class="status-label">Estado</span><span class="status-val active-dot">Activo</span></div>
-        <div class="status-row"><span class="status-label">IA</span><span id="ia-status" class="ia-status loading">⏳ cargando...</span></div>
       </div>
 
       <div class="theme-switcher" role="group" aria-label="Selector de tema">
@@ -544,24 +543,6 @@
       });
     })();
   </script>
-
-  <!-- ── CONSERVA-IA: overlay de descarga del modelo ──────────── -->
-  <div id="ia-loading-overlay" class="hidden">
-    <div class="ia-loading-card">
-      <div class="ia-loading-icon">🤖</div>
-      <h3>Descargando CONSERVA-IA</h3>
-      <p>Estamos instalando tu asistente de inteligencia artificial local.</p>
-      <p class="ia-loading-note">
-        Solo se descarga <strong>una vez</strong>. Después funciona completamente
-        sin internet, directo en tu dispositivo.
-      </p>
-      <div class="ia-progress-bar">
-        <div id="ia-progress-fill" class="ia-progress-fill"></div>
-      </div>
-      <div id="ia-progress-text" class="ia-progress-text">Preparando...</div>
-    </div>
-  </div>
-
 </body>
 
 </html>

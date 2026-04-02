@@ -1,0 +1,84 @@
+{
+  "id_documento": "cpa_manual_credito_paralelo_dc_oct_2023",
+  "titulo_documento": "Manual de Crédito Paralelo",
+  "prefijo_fuente": "CPA",
+  "fuentes": {
+    "instruccion_dataset": "/mnt/data/Pasted text.txt",
+    "documento_markdown": "/mnt/data/Manual_de_credito_paralelo.md"
+  },
+  "dataset_completo": {
+    "archivo": "cpa_dataset_completo.jsonl",
+    "ruta": "/mnt/data/cpa_dataset_completo.jsonl",
+    "registros": 22620
+  },
+  "bloques": [
+    {
+      "bloque": 1,
+      "archivo": "cpa_dataset_bloque_01.jsonl",
+      "ruta": "/mnt/data/cpa_dataset_bloque_01.jsonl",
+      "registros": 4524,
+      "id_desde": "CPA_000001",
+      "id_hasta": "CPA_004524"
+    },
+    {
+      "bloque": 2,
+      "archivo": "cpa_dataset_bloque_02.jsonl",
+      "ruta": "/mnt/data/cpa_dataset_bloque_02.jsonl",
+      "registros": 4524,
+      "id_desde": "CPA_004525",
+      "id_hasta": "CPA_009048"
+    },
+    {
+      "bloque": 3,
+      "archivo": "cpa_dataset_bloque_03.jsonl",
+      "ruta": "/mnt/data/cpa_dataset_bloque_03.jsonl",
+      "registros": 4524,
+      "id_desde": "CPA_009049",
+      "id_hasta": "CPA_013572"
+    },
+    {
+      "bloque": 4,
+      "archivo": "cpa_dataset_bloque_04.jsonl",
+      "ruta": "/mnt/data/cpa_dataset_bloque_04.jsonl",
+      "registros": 4524,
+      "id_desde": "CPA_013573",
+      "id_hasta": "CPA_018096"
+    },
+    {
+      "bloque": 5,
+      "archivo": "cpa_dataset_bloque_05.jsonl",
+      "ruta": "/mnt/data/cpa_dataset_bloque_05.jsonl",
+      "registros": 4524,
+      "id_desde": "CPA_018097",
+      "id_hasta": "CPA_022620"
+    }
+  ],
+  "totales": {
+    "registros": 22620,
+    "temas": 100,
+    "tipos_consulta": {
+      "Directa": 2262,
+      "Reformulada": 3212,
+      "Fragmento": 2262,
+      "Keyword": 3016,
+      "Coloquial": 2974,
+      "Ambigua": 1508,
+      "Palabras_Ancla": 1708,
+      "Error_Leve": 2616,
+      "Chat_Corto": 3062
+    },
+    "prioridad_recuperacion": {
+      "media": 3420,
+      "alta": 18960,
+      "baja": 240
+    },
+    "intencion_macro": {
+      "Consulta": 10485,
+      "Validacion": 2916,
+      "Accion": 854,
+      "Duda": 5558,
+      "Error": 2807
+    },
+    "duplicados_exactos_consulta": 0
+  }
+}

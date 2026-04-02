@@ -2273,7 +2273,8 @@ h1, h2, h3, .brand-title {
   overflow: hidden;
   padding: 8px 0;
   background: var(--bg-surface, #ffffff);
-  border-top: 1px solid rgba(0,0,0,0.05);
+  /* Ocultamos la línea delgada superior del ribbon */
+  border-top: none;
 }
 
 /* ── HEADER LOGOUT BUTTON ── */
@@ -3219,19 +3220,20 @@ textarea:focus-visible {
 
 /* ══════════════════════════════════════════════════════════════
    FAB SPEED DIAL — Botón flotante de acción con menú vertical
-   Material Design · Posicionado en esquina inferior derecha
+   Material Design · Posicionado sobre el área de input del chat
    ══════════════════════════════════════════════════════════════ */
 
-/* Contenedor principal en la esquina de la pantalla */
+/* Contenedor principal — posicionado por encima del input area */
 .fab-container {
   position: fixed;
-  bottom: 24px;
+  /* ~160px = altura input area (~120px) + padding (40px) */
+  bottom: 160px;
   right: 24px;
   display: flex;
-  flex-direction: column-reverse; /* Los elementos crecen hacia arriba */
+  flex-direction: column-reverse; /* Las opciones crecen hacia arriba */
   align-items: flex-end;
   gap: 14px;
-  z-index: 9999;
+  z-index: 9000;
   font-family: 'Plus Jakarta Sans', 'Segoe UI', Roboto, sans-serif;
   transition: opacity 0.3s ease, transform 0.3s ease;
 }
@@ -3258,6 +3260,20 @@ textarea:focus-visible {
 .fab-main:hover {
   transform: scale(1.05);
   background-color: #006360;
+}
+
+/* Animación de halo latente en el botón principal */
+.fab-pulse {
+  animation: fabPulse 2.5s ease-in-out infinite;
+}
+
+@keyframes fabPulse {
+  0%, 100% {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25), 0 0 0 0 rgba(0, 99, 96, 0.5);
+  }
+  50% {
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3), 0 0 0 14px rgba(0, 99, 96, 0);
+  }
 }
 
 /* Contenedor de las opciones flotantes */
@@ -3322,20 +3338,142 @@ textarea:focus-visible {
   background-color: #243028;
 }
 
-/* Adaptación para móviles pequeños */
+/* ==========================================================================
+   NUEVO DISEÑO DE RESPUESTAS PREMIUM (v2 - Carpeta Nuevo Diseño)
+   ========================================================================== */
+
+:root {
+  --ans-v2-bg: #ffffff;
+  --ans-v2-header-g1: #2557b5;
+  --ans-v2-header-g2: #6aa7ff;
+  --ans-v2-border: #6b9cf0;
+  --ans-v2-body-bg: #fbfdff;
+  --ans-v2-check-bg: #245fca;
+  --ans-v2-text: #1f3b64;
+}
+
+[data-theme='dark'] {
+  --ans-v2-bg: #1a1f26;
+  --ans-v2-header-g1: #1a3a6b;
+  --ans-v2-header-g2: #2b5797;
+  --ans-v2-border: #2b5797;
+  --ans-v2-body-bg: rgba(255, 255, 255, 0.05);
+  --ans-v2-check-bg: #4a74d4;
+  --ans-v2-text: #ddf0e2;
+}
+
+[data-theme='institutional'] {
+  --ans-v2-header-g1: #003B71;
+  --ans-v2-header-g2: #0070c0;
+  --ans-v2-border: #003B71;
+  --ans-v2-body-bg: #f5f9ff;
+  --ans-v2-check-bg: #68C32B; /* Verde Institucional en el check */
+  --ans-v2-text: #003B71;
+}
+
+.blue-highlight-box-v2 {
+  border: 1px solid var(--ans-v2-border);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--ans-v2-bg);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.12);
+  margin: 12px 0;
+  max-width: 600px;
+  animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1), latent-pulse 3s infinite ease-in-out;
+}
+
+@keyframes latent-pulse {
+  0% { box-shadow: 0 4px 12px rgba(37, 99, 235, 0.12); }
+  50% { box-shadow: 0 6px 20px rgba(37, 99, 235, 0.25); }
+  100% { box-shadow: 0 4px 12px rgba(37, 99, 235, 0.12); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.blue-highlight-header-v2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(90deg, var(--ans-v2-header-g1) 0%, var(--ans-v2-header-g2) 100%);
+  color: #ffffff;
+  font-weight: 700;
+  padding: 11px 16px;
+  font-size: 1rem;
+  border-bottom: 1px solid rgba(255,255,255,0.15);
+}
+
+.header-icon-v2 {
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.18);
+  font-size: 14px;
+  line-height: 1;
+}
+
+.blue-highlight-body-v2 {
+  background: var(--ans-v2-body-bg);
+  color: var(--ans-v2-text);
+  padding: 16px 18px;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.check-list-v2 {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.check-list-v2 li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.check-list-v2 li:last-child {
+  margin-bottom: 0;
+}
+
+.check-v2 {
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  border-radius: 50%;
+  background: var(--ans-v2-check-bg);
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: bold;
+  margin-top: 2px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+}
+
+.warning-box-v2 {
+  margin-top: 14px;
+  padding: 0 0 0 14px;
+  border-left: 3px solid var(--accent);
+  color: var(--text-2);
+  font-size: 0.9rem;
+}
+
+.warning-box-v2 strong {
+  color: var(--ans-v2-header-g1);
+}
+
 @media (max-width: 480px) {
-  .fab-container {
-    bottom: 16px;
-    right: 16px;
-  }
-  .fab-main {
-    width: 50px;
-    height: 50px;
-    font-size: 20px;
-  }
-  .fab-option-item {
-    font-size: 12px;
-    padding: 8px 14px;
+  .blue-highlight-box-v2 {
+    max-width: 100%;
   }
 }
 

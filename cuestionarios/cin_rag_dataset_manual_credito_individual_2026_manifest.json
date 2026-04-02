@@ -1,0 +1,18 @@
+{
+  "id_documento": "manual_credito_individual_tu_negocio_conserva_2026",
+  "titulo_documento": "Manual de Crédito Individual Tu Negocio con CONSERVA 2026",
+  "prefijo_fuente": "CIN",
+  "total_registros": 20124,
+  "total_temas_base": 872,
+  "archivos": {
+    "completo": "/mnt/data/cin_dataset_output/cin_rag_dataset_manual_credito_individual_2026.jsonl",
+    "bloques": [
+      "/mnt/data/cin_dataset_output/cin_rag_dataset_manual_credito_individual_2026_bloque_01.jsonl",
+      "/mnt/data/cin_dataset_output/cin_rag_dataset_manual_credito_individual_2026_bloque_02.jsonl",
+      "/mnt/data/cin_dataset_output/cin_rag_dataset_manual_credito_individual_2026_bloque_03.jsonl",
+      "/mnt/data/cin_dataset_output/cin_rag_dataset_manual_credito_individual_2026_bloque_04.jsonl",
+      "/mnt/data/cin_dataset_output/cin_rag_dataset_manual_credito_individual_2026_bloque_05.jsonl",
+      "/mnt/data/cin_dataset_output/cin_rag_dataset_manual_credito_individual_2026_bloque_06.jsonl"
+    ]
+  }
+}

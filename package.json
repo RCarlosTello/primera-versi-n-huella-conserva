@@ -4,7 +4,8 @@
   "description": "Prueba Huella Conserva con Vite",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build:rag-cuestionarios": "node scripts/build-rag-cuestionarios.mjs",
+    "build": "npm run build:rag-cuestionarios && vite build",
     "preview": "vite preview"
   },
   "devDependencies": {

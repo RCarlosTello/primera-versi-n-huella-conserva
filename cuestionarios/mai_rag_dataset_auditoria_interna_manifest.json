@@ -1,0 +1,35 @@
+{
+  "id_documento": "mai_manual_de_auditoria_interna_2022",
+  "titulo_documento": "MANUAL DE AUDITORÍA INTERNA",
+  "prefijo_fuente": "MAI",
+  "total_registros": 20381,
+  "formato": "jsonl",
+  "archivo_maestro": "mai_rag_dataset_auditoria_interna_20381.jsonl",
+  "bloques": [
+    {
+      "archivo": "mai_rag_dataset_auditoria_interna_bloque_01.jsonl",
+      "desde": 1,
+      "hasta": 5000
+    },
+    {
+      "archivo": "mai_rag_dataset_auditoria_interna_bloque_02.jsonl",
+      "desde": 5001,
+      "hasta": 10000
+    },
+    {
+      "archivo": "mai_rag_dataset_auditoria_interna_bloque_03.jsonl",
+      "desde": 10001,
+      "hasta": 15000
+    },
+    {
+      "archivo": "mai_rag_dataset_auditoria_interna_bloque_04.jsonl",
+      "desde": 15001,
+      "hasta": 20000
+    },
+    {
+      "archivo": "mai_rag_dataset_auditoria_interna_bloque_05.jsonl",
+      "desde": 20001,
+      "hasta": 20381
+    }
+  ]
+}

@@ -1,0 +1,103 @@
+{
+  "id_documento": "manual_credito_conserva_t_activa_politicas_y_procedimientos",
+  "titulo_documento": "Manual de Crédito Conserva T-Activa - Políticas y Procedimientos",
+  "prefijo_fuente": "CTA",
+  "grupos_semanticos": 717,
+  "registros_totales": 20076,
+  "bloques": [
+    {
+      "bloque": 1,
+      "inicio_registro": "CTA_0001_01",
+      "fin_registro": "CTA_0180_07",
+      "registros": 5019,
+      "archivo": "cta_dataset_bloque_01.jsonl",
+      "sandbox_path": "sandbox:/mnt/data/cta_dataset_bloque_01.jsonl"
+    },
+    {
+      "bloque": 2,
+      "inicio_registro": "CTA_0180_08",
+      "fin_registro": "CTA_0359_14",
+      "registros": 5019,
+      "archivo": "cta_dataset_bloque_02.jsonl",
+      "sandbox_path": "sandbox:/mnt/data/cta_dataset_bloque_02.jsonl"
+    },
+    {
+      "bloque": 3,
+      "inicio_registro": "CTA_0359_15",
+      "fin_registro": "CTA_0538_21",
+      "registros": 5019,
+      "archivo": "cta_dataset_bloque_03.jsonl",
+      "sandbox_path": "sandbox:/mnt/data/cta_dataset_bloque_03.jsonl"
+    },
+    {
+      "bloque": 4,
+      "inicio_registro": "CTA_0538_22",
+      "fin_registro": "CTA_0717_28",
+      "registros": 5019,
+      "archivo": "cta_dataset_bloque_04.jsonl",
+      "sandbox_path": "sandbox:/mnt/data/cta_dataset_bloque_04.jsonl"
+    }
+  ],
+  "archivo_completo": {
+    "archivo": "cta_dataset_full.jsonl",
+    "sandbox_path": "sandbox:/mnt/data/cta_dataset_full.jsonl",
+    "registros": 20076
+  },
+  "distribucion_tipos": {
+    "Directa": 2868,
+    "Reformulada": 3499,
+    "Fragmento": 2281,
+    "Keyword": 2824,
+    "Coloquial": 2869,
+    "Ambigua": 1434,
+    "Palabras_Ancla": 1433,
+    "Error_Leve": 1434,
+    "Chat_Corto": 1434
+  },
+  "distribucion_intencion_especifica": {
+    "definicion": 2800,
+    "cobranza": 2156,
+    "actualizacion": 336,
+    "quien_puede": 588,
+    "validacion": 812,
+    "requisito": 3528,
+    "plazo": 252,
+    "pago": 1904,
+    "quien_no_puede": 672,
+    "sancion": 336,
+    "renovacion": 700,
+    "documentacion": 3780,
+    "registro": 140,
+    "correccion": 56,
+    "problema_frecuente": 168,
+    "rechazo": 196,
+    "restriccion": 140,
+    "cancelacion": 28,
+    "estatus": 56,
+    "vigencia": 28,
+    "paso": 1400
+  },
+  "distribucion_intencion_macro": {
+    "Consulta": 8008,
+    "Accion": 10444,
+    "Validacion": 868,
+    "Error": 756
+  },
+  "distribucion_contexto_operativo": {
+    "No_claro": 3948,
+    "Sistema": 784,
+    "Oficina": 2156,
+    "Auditoria": 1092,
+    "Campo": 4256,
+    "Cliente": 6160,
+    "Sucursal": 1372,
+    "Caja": 308
+  },
+  "distribucion_nivel_usuario": {
+    "No_claro": 11032,
+    "Gerencial": 2100,
+    "Administrativo": 2212,
+    "Mixto": 1876,
+    "Operativo": 2856
+  }
+}

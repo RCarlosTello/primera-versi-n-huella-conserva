@@ -47,20 +47,19 @@ export function handleCON(query) {
     let content = '', seccion = 'General';
 
     if (q.includes('misión') || q.includes('mision')) {
-        content = `**Misión de CONSERVA:**\n\n${CON_INFO.mision}`; seccion = 'Misión';
+        content = `💬 Misión de CONSERVA:\n${CON_INFO.mision}`; seccion = 'Misión';
     } else if (q.includes('visión') || q.includes('vision')) {
-        content = `**Visión de CONSERVA:**\n\n${CON_INFO.vision}`; seccion = 'Visión';
+        content = `💬 Visión de CONSERVA:\n${CON_INFO.vision}`; seccion = 'Visión';
     } else if (q.includes('propósito') || q.includes('proposito')) {
-        content = `**Propósito de CONSERVA:**\n\n${CON_INFO.proposito}`; seccion = 'Propósito';
+        content = `💬 Propósito Institucional:\n${CON_INFO.proposito}`; seccion = 'Propósito';
     } else if (q.includes('mantra')) {
-        content = `**Mantra de CONSERVA:** ${CON_INFO.mantra}`; seccion = 'Mantra';
+        content = `💬 Mantra de CONSERVA:\n${CON_INFO.mantra}`; seccion = 'Mantra';
     } else if (q.includes('valor') || q.includes('principio')) {
-        content = `**Valores de CONSERVA:**\n\n${CON_INFO.valores}`; seccion = 'Valores';
+        content = `💬 Valores Corporativos:\n${CON_INFO.valores}`; seccion = 'Valores';
     } else if (q.includes('historia') || q.includes('trayectoria') || q.includes('fundación') || q.includes('inicio')) {
-        content = CON_INFO.historia; seccion = 'Historia';
+        content = `💬 Nuestra Historia:\n${CON_INFO.historia}`; seccion = 'Historia';
     } else {
-        content = `**Conócenos — Grupo CONSERVA**\n\n**Propósito:** ${CON_INFO.proposito}\n\n**Historia:** ${CON_INFO.historia.substring(0, 150)}...\n\n**Misión:** ${CON_INFO.mision}\n\n**Visión:** ${CON_INFO.vision}\n\n**Mantra:** ${CON_INFO.mantra}\n\n**Valores:** ${CON_INFO.valores}`;
-        seccion = 'Información General';
+        return null; // No corresponde a temarios de CON
     }
     return { 
         content, 
@@ -171,9 +170,21 @@ export function handleMAN(query, linea, collaborator) {
 
     const q = (query || '').toLowerCase();
 
+    // ── Meta-preguntas sobre el catálogo de productos ──────────────────────────
+    // Detectar preguntas de conteo o listado de todos los productos/manuales
+    const isMetaCatalogo = /cuantos?|cu[aá]ntos?|listado|todos los|cu[aá]les son|que productos|qué productos|que manuales|qué manuales|productos.*conserva|manuales.*conserva|lineas.*credito|l[ií]neas.*cr[eé]dito/i.test(query);
+    if (isMetaCatalogo && !linea?.id) {
+        return {
+            content: `📋 **Productos de Crédito CONSERVA**\n\nGrupo CONSERVA ofrece **5 productos de crédito** principales:\n\n1. 👥 **Mujeres de Palabra** — Crédito grupal solidario para mujeres emprendedoras\n2. 🏪 **Crédito Individual** — Para negocios establecidos (Tu Negocio con CONSERVA)\n3. ⚡ **Conserva T Activa** — Crédito grupal con condiciones especiales\n4. 🏠 **Tu Hogar con CONSERVA** — Mejoramiento y construcción de vivienda\n5. ➕ **Crédito Paralelo** — Crédito adicional para clientes activos\n\nAdemás, administramos:\n- 📦 **Caja Chica** — Fondo para gastos operativos urgentes\n- 🔍 **Auditoría Interna** — Marco institucional de control\n\n¿Deseas información detallada de algún producto específico?`,
+            source: 'MOD-MAN-002 — Catálogo de Productos CONSERVA',
+            botonesTemas: ['Mujeres de Palabra', 'Crédito Individual', 'Conserva T Activa', 'Tu Hogar con CONSERVA', 'Crédito Paralelo'],
+        };
+    }
+
     // ── BÚSQUEDA SEMÁNTICA EN FAQs ──────────────────────────────────────────────
-    if (FAQS && FAQS[linea.id]) {
-        const _results = semanticSearch(query, FAQS[linea.id], { topK: 3, minScore: 0.25, fuzzy: true, expandSynonyms: true });
+    const faqListForLinea = FAQS[linea.id];
+    if (faqListForLinea?.length) {
+        const _results = semanticSearch(query, faqListForLinea, { topK: 3, minScore: 0.25, fuzzy: true, expandSynonyms: true });
         const bestScore = _results.length > 0 ? _results[0].score : 0;
         const bestMatch = _results.length > 0 ? _results[0].faq : null;
 
@@ -200,7 +211,7 @@ export function handleMAN(query, linea, collaborator) {
             }
 
             return {
-                content: `He encontrado información específica en **${data.nombre}** que responde a tu consulta:\n\n💬 ${answerText}`,
+                content: `He encontrado información específica en **${data.nombre}** que responde a tu consulta:\n\n💬 Respuesta del Manual:\n${answerText}`,
                 source: data.fuente
             };
         }
@@ -301,14 +312,14 @@ function _respMontos(data) {
     const m = data.montos;
     if (!m) return { content: `Leí el documento **${data.nombre}**, pero no encontré datos específicos sobre montos.`, source: data.fuente };
 
-    let txt = `He revisado la información dentro de **${data.nombre}** sobre los montos de crédito permitidos:\n\n`;
+    let txt = `💬 Montos de Crédito Autorizados:\n`;
 
     if (m.min !== undefined) txt += `- **Monto mínimo:** $${m.min.toLocaleString('es-MX')}.00\n`;
-    if (m.min_cintalapa !== undefined) txt += `  - *Excepción para Cintalapa:* $${m.min_cintalapa.toLocaleString('es-MX')}.00\n`;
+    if (m.min_cintalapa !== undefined) txt += `- **Monto mínimo Cintalapa:** $${m.min_cintalapa.toLocaleString('es-MX')}.00\n`;
     if (m.max !== undefined) txt += `- **Monto máximo:** $${m.max.toLocaleString('es-MX')}.00\n`;
-    if (m.primer_ciclo_max !== undefined) txt += `- **Monto máximo en primer ciclo:** $${m.primer_ciclo_max.toLocaleString('es-MX')}.00\n`;
-    if (m.primer_credito_max !== undefined) txt += `- **Monto máximo en primer crédito:** $${m.primer_credito_max.toLocaleString('es-MX')}.00\n`;
-    if (m.capacidad_pago_max_pct !== undefined) txt += `- **Límite sobre capacidad de pago:** No debe exceder el ${m.capacidad_pago_max_pct}% de la capacidad de pago del solicitante.\n`;
+    if (m.primer_ciclo_max !== undefined) txt += `- **Máximo primer ciclo:** $${m.primer_ciclo_max.toLocaleString('es-MX')}.00\n`;
+    if (m.primer_credito_max !== undefined) txt += `- **Máximo primer crédito:** $${m.primer_credito_max.toLocaleString('es-MX')}.00\n`;
+    if (m.capacidad_pago_max_pct !== undefined) txt += `- **Capacidad de pago:** Máximo ${m.capacidad_pago_max_pct}%\n`;
     if (m.nota) txt += `\n📝 ${m.nota}`;
 
     return { content: txt, source: data.fuente };
@@ -318,9 +329,9 @@ function _respPlazos(data) {
     const p = data.plazos;
     if (!p) return { content: `Leí el documento **${data.nombre}**, pero no encontré datos específicos sobre plazos.`, source: data.fuente };
 
-    let txt = `De acuerdo al documento **${data.nombre}**, estas son las reglas para los plazos del crédito:\n\n${p.texto}`;
+    let txt = `💬 Plazos de Crédito y Frecuencias:\n${p.texto}`;
     if (data.tasas?.plazos_tabla) {
-        txt += '\n\n' + data.tasas.plazos_tabla.map(r => `- Hasta $${r.hasta.toLocaleString('es-MX')}: ${r.plazos}`).join('\n');
+        txt += '\n' + data.tasas.plazos_tabla.map(r => `- Hasta $${r.hasta.toLocaleString('es-MX')}: ${r.plazos}`).join('\n');
     }
     return { content: txt, source: data.fuente };
 }
@@ -329,13 +340,13 @@ function _respTasas(data) {
     const t = data.tasas;
     if (!t) return { content: `Leí el documento **${data.nombre}**, pero no encontré datos específicos sobre tasas e intereses.`, source: data.fuente };
 
-    let txt = `Al consultar el documento **${data.nombre}**, encontré la siguiente información sobre tasas, intereses y bonificaciones:\n\n`;
+    let txt = `💬 Tasas, Intereses y Comisiones:\n`;
 
-    if (t.mensual_con_iva) txt += `- **Tasa global mensual (+ IVA):** ${t.mensual_con_iva}\n`;
+    if (t.mensual_con_iva) txt += `- **Tasa mensual (+ IVA):** ${t.mensual_con_iva}\n`;
     if (t.anual_con_iva) txt += `- **Tasa anual (+ IVA):** ${t.anual_con_iva}\n`;
     if (t.global_mensual) txt += `- **Tasa global mensual:** ${t.global_mensual}\n`;
     if (t.anual) txt += `- **Tasa anual:** ${t.anual}\n`;
-    if (t.cat) txt += `- **CAT (informativo, sin IVA):** ${t.cat}\n`;
+    if (t.cat) txt += `- **CAT (informativo):** ${t.cat}\n`;
     if (t.iva) txt += `- **IVA:** ${t.iva}\n`;
     if (t.moratoria_texto) txt += `- **Tasa moratoria:** ${t.moratoria_texto}\n`;
     if (t.seguro) txt += `- **Seguro de vida:** ${t.seguro}\n`;
@@ -359,17 +370,17 @@ function _respRequisitos(data) {
     const r = data.requisitos;
     if (!r) return { content: `Leí el documento **${data.nombre}**, pero no encontré una lista de requisitos específicos.`, source: data.fuente };
 
-    let txt = `He encontrado la siguiente información de la sección de Requisitos dentro de **${data.nombre}**:\n\n`;
+    let txt = `💬 Requisitos para Solicitud de Crédito:\n`;
 
     if (r.documentos?.length) {
-        txt += `**Documentos requeridos:**\n${r.documentos.map(d => `- ${d}`).join('\n')}\n\n`;
+        txt += r.documentos.map(d => `- ${d}`).join('\n') + '\n';
     }
     if (r.garantia_liquida) txt += `- **Garantía líquida:** ${r.garantia_liquida}\n`;
     if (r.edad) txt += `- **Edad:** ${r.edad}\n`;
-    if (r.antigüedad_domicilio) txt += `- **Antigüedad de domicilio:** ${r.antigüedad_domicilio}\n`;
+    if (r.antigüedad_domicilio) txt += `- **Antigüedad domicilio:** ${r.antigüedad_domicilio}\n`;
     if (r.obligado_solidario) txt += `- **Obligado solidario:** ${r.obligado_solidario}\n`;
     if (r.historial) txt += `- **Historial crediticio:** ${r.historial}\n`;
-    if (r.ventana_solicitud) txt += `- **Ventana de solicitud:** ${r.ventana_solicitud}\n`;
+    if (r.ventana_solicitud) txt += `- **Ventana solicitud:** ${r.ventana_solicitud}\n`;
     if (r.restricciones) txt += `\n⚠️ **Restricciones:** ${r.restricciones}`;
 
     return { content: txt, source: data.fuente };
@@ -380,7 +391,7 @@ function _respGarantias(data) {
     if (!g) return { content: `Leí el documento **${data.nombre}**, pero no encontré información sobre garantías.`, source: data.fuente };
 
     return {
-        content: `Claro. Según el documento **${data.nombre}**, las garantías son:\n\n💬 ${g}`,
+        content: `💬 Políticas de Garantías:\n${g}`,
         source: data.fuente,
     };
 }
@@ -596,7 +607,7 @@ export function handleVIA(query, collaborator) {
     }
     if (q.includes('anticipación y comprobación') || q.includes('anticipacion y comprobacion') || q.includes('comprobación') || q.includes('comprobacion')) {
         return {
-            content: `📋 **Anticipación y Comprobación de Viáticos:**\n\n**Solicitud:**\n- ${VIA_POLITICAS.anticipacion}\n\n**Comprobación:**\n- ${VIA_POLITICAS.comprobacion_plazo}\n- Requiere facturas CFDI (PDF y XML).\n\n**Gastos no válidos:**\n- ${VIA_POLITICAS.gastos_no_validos}\n\n**Cancelación:**\n- ${VIA_POLITICAS.devolucion_cancelacion}`,
+            content: `💬 Anticipación y Comprobación:\n- **Anticipación:** ${VIA_POLITICAS.anticipacion}\n- **Plazo:** ${VIA_POLITICAS.comprobacion_plazo}\n- **Requisitos:** Facturas CFDI (PDF y XML)\n- **No válidos:** ${VIA_POLITICAS.gastos_no_validos}\n- **Cancelación:** ${VIA_POLITICAS.devolucion_cancelacion}`,
             source: 'MOD-VIA-006 MANUAL_VIATICOS',
             botonesTemas: ['Topes de Hospedaje por Ciudad', 'Regresar al Menú Principal']
         };
@@ -994,8 +1005,8 @@ export async function handleSAN(query) {
         }
     }
 
-    // 2. Listados por nivel
-    if (q.includes('leve') && !q.includes('folio')) {
+    // 2. Listados por nivel — acepta variantes masculinas y femeninas
+    if ((q.includes('leve') || q.match(/\bfaltas? leves?\b/)) && !q.includes('folio')) {
         let res = `🟢 **Nivel LEVE — Folios 1 al 4**\n\n`;
         SAN_DATA.nivel_leve.folios.forEach(f => {
             res += `- **Folio ${f.folio}:** ${f.conducta.substring(0, 80)}...\n`;
@@ -1003,18 +1014,22 @@ export async function handleSAN(query) {
         res += `\nEscribe **"Folio X"** para ver pasos, instancias y formatos de descarga.`;
         return { content: res, source: SAN_DATA.fuente };
     }
-    if (q.includes('grave') && !q.includes('folio')) {
+    if ((q.includes('grave') || q.match(/\bfaltas? graves?\b/)) && !q.includes('folio')) {
         let res = `🔴 **Nivel GRAVE — Folios 53 al 65**\n\nTolerancia cero. Escribe el número de folio para ver detalle completo.\n\n`;
         SAN_DATA.nivel_grave.folios.forEach(f => {
             res += `- **Folio ${f.folio}:** ${f.conducta.substring(0, 80)}...\n`;
         });
         return { content: res, source: SAN_DATA.fuente };
     }
-    if (q.includes('moderado') && !q.includes('folio')) {
-        return {
-            content: `🟡 **Nivel MODERADO — Folios 5 al 52**\n\nAbarca negligencia, bajo rendimiento e incumplimientos operativos.\n\nEscribe la conducta o número de folio para ver detalle completo (ej: _"llegadas tarde"_, _"Folio 8"_, _"uso de recursos"_).`,
-            source: SAN_DATA.fuente
-        };
+    if ((q.includes('moderado') || q.includes('moderada') || q.match(/\bfaltas? moderadas?\b/) || q.match(/\bnivel moderad/)) && !q.includes('folio')) {
+        let res = `🟡 **Nivel MODERADO — Folios 5 al 52**\n\nAbarca negligencia, bajo rendimiento e incumplimientos operativos.\n\n`;
+        SAN_DATA.nivel_moderado.folios.slice(0, 10).forEach(f => {
+            res += `- **Folio ${f.folio}:** ${f.conducta.substring(0, 80)}...\n`;
+        });
+        const total = SAN_DATA.nivel_moderado.folios.length;
+        if (total > 10) res += `\n_...y ${total - 10} conductas más. Escribe el número de folio o la conducta para ver el detalle._`;
+        else res += `\nEscribe la conducta o **"Folio X"** para ver instancias y formatos.`;
+        return { content: res, source: SAN_DATA.fuente };
     }
 
     // 3. Consulta de consulta de folios general
